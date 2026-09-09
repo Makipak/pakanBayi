@@ -1,0 +1,49 @@
+# dependencies
+node_modules
+.pnp
+.pnp.js
+.yarn/install-state.gz
+
+# testing / coverage
+coverage
+
+# next.js
+.next
+out
+next-env.d.ts
+
+# production build
+build
+dist
+
+# env files (keep .env.example if ada, jangan commit yang isi secret asli)
+.env
+.env.local
+.env.*.local
+
+# prisma / sqlite (dev.db di-generate lewat `npm run db:setup`)
+*.db
+*.db-journal
+prisma/dev.db
+prisma/dev.db-journal
+
+# logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.log
+
+# turbopack / vercel
+.turbo
+.vercel
+
+# typescript
+*.tsbuildinfo
+
+# editor / OS
+.DS_Store
+Thumbs.db
+.vscode/*
+!.vscode/extensions.json
+.idea

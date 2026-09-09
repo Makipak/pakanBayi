@@ -1,0 +1,88 @@
+// Schema — Sistem Monitoring Intervensi Gizi Balita
+// Diadaptasi dari schema.md. Catatan: SQLite tidak mendukung tipe `enum` Prisma,
+// jadi field enum di schema.md diimplementasikan sebagai String dengan nilai
+// yang divalidasi di level aplikasi (lihat src/lib/validators.ts).
+// Saat migrasi ke PostgreSQL (deploy), field String ini bisa diganti balik ke enum asli.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// Role: "ADMIN" | "KADER"
+// JenisKelamin: "L" | "P"
+// StatusBalita: "AKTIF" | "SELESAI" | "DROPOUT"
+// StatusInput: "TERISI" | "TIDAK_TERISI"
+// TipeLab: "BASELINE" | "ENDLINE"
+
+model User {
+  id           String   @id @default(cuid())
+  username     String   @unique
+  passwordHash String
+  role         String // ADMIN | KADER
+  nama         String
+  createdAt    DateTime @default(now())
+
+  balita        Balita[]        @relation("KaderBalita")
+  catatanHarian CatatanHarian[] @relation("InputCatatan")
+  hasilLab      HasilLab[]      @relation("InputLab")
+}
+
+model Balita {
+  id              String   @id @default(cuid())
+  nama            String
+  usiaBulan       Int
+  jenisKelamin    String // L | P
+  tinggiBadanAwal Float
+  beratBadanAwal  Float
+  posyandu        String
+  kaderId         String
+  status          String   @default("AKTIF") // AKTIF | SELESAI | DROPOUT
+  tanggalMulai    DateTime @default(now())
+  createdAt       DateTime @default(now())
+
+  kader         User            @relation("KaderBalita", fields: [kaderId], references: [id])
+  catatanHarian CatatanHarian[]
+  hasilLab      HasilLab[]
+
+  @@index([kaderId])
+}
+
+model CatatanHarian {
+  id                 String   @id @default(cuid())
+  balitaId           String
+  tanggal            DateTime
+  hariKe              Int
+  beratBadan         Float?
+  konsumsiNuggetGram Float?
+  statusInput        String   @default("TIDAK_TERISI") // TERISI | TIDAK_TERISI
+  inputBy            String?
+  createdAt          DateTime @default(now())
+
+  balita Balita @relation(fields: [balitaId], references: [id], onDelete: Cascade)
+  input  User?  @relation("InputCatatan", fields: [inputBy], references: [id])
+
+  @@unique([balitaId, hariKe])
+  @@index([balitaId])
+  @@index([tanggal])
+}
+
+model HasilLab {
+  id                String   @id @default(cuid())
+  balitaId          String
+  tipe              String // BASELINE | ENDLINE
+  hbValue           Float
+  zincValue         Float
+  tanggalPengukuran DateTime
+  inputBy           String?
+  createdAt         DateTime @default(now())
+
+  balita Balita @relation(fields: [balitaId], references: [id], onDelete: Cascade)
+  input  User?  @relation("InputLab", fields: [inputBy], references: [id])
+
+  @@unique([balitaId, tipe])
+}
