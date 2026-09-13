@@ -47,8 +47,12 @@ export default async function InputHarianPage(
             balitaId={balita.id}
             catatanHarianId={hariIni.id}
             hariKe={hariIni.hariKe}
+            defaultTinggiBadan={hariIni.tinggiBadan}
             defaultBeratBadan={hariIni.beratBadan}
             defaultKonsumsi={hariIni.konsumsiNuggetGram}
+            defaultKarbohidrat={hariIni.karbohidratGram}
+            defaultProtein={hariIni.proteinGram}
+            defaultLemak={hariIni.lemakGram}
           />
         )}
       </Card>

@@ -56,6 +56,7 @@ export async function submitHasilLab(formData: FormData): Promise<ActionResult> 
       update: {
         hbValue: data.hbValue,
         zincValue: data.zincValue,
+        feValue: data.feValue,
         tanggalPengukuran: new Date(data.tanggalPengukuran),
         inputBy: session.user.id,
       },
@@ -64,6 +65,7 @@ export async function submitHasilLab(formData: FormData): Promise<ActionResult> 
         tipe: data.tipe,
         hbValue: data.hbValue,
         zincValue: data.zincValue,
+        feValue: data.feValue,
         tanggalPengukuran: new Date(data.tanggalPengukuran),
         inputBy: session.user.id,
       },

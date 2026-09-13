@@ -60,6 +60,7 @@ async function main() {
       const nama = namaContoh[idx % namaContoh.length];
       idx++;
       const beratAwal = 8 + Math.round(Math.random() * 6);
+      const tinggiAwal = 70 + Math.round(Math.random() * 20);
 
       const existing = await prisma.balita.findFirst({
         where: { nama, kaderId: kader.id },
@@ -71,7 +72,7 @@ async function main() {
           nama,
           usiaBulan: 12 + Math.floor(Math.random() * 40),
           jenisKelamin: Math.random() > 0.5 ? "L" : "P",
-          tinggiBadanAwal: 70 + Math.round(Math.random() * 20),
+          tinggiBadanAwal: tinggiAwal,
           beratBadanAwal: beratAwal,
           posyandu: `Posyandu ${kader.nama.split(" ").pop()}`,
           kaderId: kader.id,
@@ -93,36 +94,9 @@ async function main() {
       });
       await prisma.catatanHarian.createMany({ data: rows });
 
-      // Isi 3 hari pertama sebagai contoh data terisi
-      for (let day = 0; day < 3; day++) {
-        const catatan = await prisma.catatanHarian.findFirst({
-          where: { balitaId: balita.id, hariKe: day + 1 },
-        });
-        if (!catatan) continue;
-        await prisma.catatanHarian.update({
-          where: { id: catatan.id },
-          data: {
-            beratBadan: beratAwal + day * 0.05,
-            konsumsiNuggetGram: 40 + Math.round(Math.random() * 10),
-            statusInput: "TERISI",
-            inputBy: kader.id,
-          },
-        });
-      }
-
-      // Hasil lab baseline
-      await prisma.hasilLab.upsert({
-        where: { balitaId_tipe: { balitaId: balita.id, tipe: "BASELINE" } },
-        update: {},
-        create: {
-          balitaId: balita.id,
-          tipe: "BASELINE",
-          hbValue: 9 + Math.round(Math.random() * 30) / 10,
-          zincValue: 50 + Math.round(Math.random() * 30),
-          tanggalPengukuran: mulaiStudi,
-          inputBy: kader.id,
-        },
-      });
+      // Sengaja TIDAK di-prefill — semua 28 hari mulai kosong (TIDAK_TERISI) dan
+      // belum ada HasilLab sama sekali, supaya kader bisa langsung coba alur input
+      // dari nol (termasuk input Baseline hari-0) begitu login.
     }
   }
 

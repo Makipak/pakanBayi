@@ -23,8 +23,12 @@ export async function GET() {
     kader: c.balita.kader.nama,
     hari_ke: c.hariKe,
     tanggal: c.tanggal.toISOString().slice(0, 10),
+    tinggi_badan_cm: c.tinggiBadan ?? "",
     berat_badan_kg: c.beratBadan ?? "",
     konsumsi_nugget_gram: c.konsumsiNuggetGram ?? "",
+    karbohidrat_gram: c.karbohidratGram ?? "",
+    protein_gram: c.proteinGram ?? "",
+    lemak_gram: c.lemakGram ?? "",
     status_input: c.statusInput,
     diinput_oleh: c.input?.nama ?? "",
   }));

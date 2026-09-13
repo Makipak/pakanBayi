@@ -47,7 +47,7 @@ export function HasilLabForm({
           <Input id="tanggalPengukuran" name="tanggalPengukuran" type="date" required />
         </div>
       </div>
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-3 gap-3">
         <div>
           <Label htmlFor="hbValue">Hb (g/dL)</Label>
           <Input id="hbValue" name="hbValue" type="number" step="0.1" min="0" required />
@@ -55,6 +55,10 @@ export function HasilLabForm({
         <div>
           <Label htmlFor="zincValue">Zinc (µg/dL)</Label>
           <Input id="zincValue" name="zincValue" type="number" step="0.1" min="0" required />
+        </div>
+        <div>
+          <Label htmlFor="feValue">Fe (µg/dL)</Label>
+          <Input id="feValue" name="feValue" type="number" step="0.1" min="0" required />
         </div>
       </div>
       <label className="flex items-center gap-2 text-xs text-slate-500">

@@ -38,6 +38,7 @@ export const kaderSchema = z.object({
 
 export const catatanHarianSchema = z.object({
   catatanHarianId: z.string().min(1),
+  tinggiBadan: z.coerce.number().positive("Tinggi badan wajib angka positif"),
   beratBadan: z.coerce
     .number()
     .positive("Berat badan wajib angka positif"),
@@ -45,6 +46,9 @@ export const catatanHarianSchema = z.object({
     .number()
     .min(0, "Tidak boleh negatif")
     .max(TARGET_NUGGET_GRAM, `Maksimal ${TARGET_NUGGET_GRAM} gram`),
+  karbohidratGram: z.coerce.number().min(0, "Tidak boleh negatif"),
+  proteinGram: z.coerce.number().min(0, "Tidak boleh negatif"),
+  lemakGram: z.coerce.number().min(0, "Tidak boleh negatif"),
   confirmOutOfRange: z.coerce.boolean().optional(),
 });
 
@@ -53,6 +57,7 @@ export const hasilLabSchema = z.object({
   tipe: z.enum(TIPE_LAB),
   hbValue: z.coerce.number().positive("Nilai Hb wajib angka positif"),
   zincValue: z.coerce.number().positive("Nilai Zinc wajib angka positif"),
+  feValue: z.coerce.number().positive("Nilai Fe wajib angka positif"),
   tanggalPengukuran: z.string().min(1, "Tanggal wajib diisi"),
   confirmOutOfRange: z.coerce.boolean().optional(),
 });

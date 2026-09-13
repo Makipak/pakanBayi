@@ -28,7 +28,7 @@ export default async function KaderDashboardPage() {
       </div>
 
       {balitaList.length === 0 ? (
-        <EmptyState>Belum ada balita yang di-assign ke kamu oleh Admin.</EmptyState>
+        <EmptyState>Belum ada balita yang di-assign ke kamu oleh SPV Kader.</EmptyState>
       ) : (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {balitaList.map((b) => {

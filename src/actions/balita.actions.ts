@@ -10,7 +10,7 @@ import { DURASI_STUDI_HARI } from "@/lib/constants";
 async function requireAdmin() {
   const session = await auth();
   if (!session || session.user.role !== "ADMIN") {
-    throw new Error("Hanya Admin yang bisa melakukan aksi ini");
+    throw new Error("Hanya SPV Kader yang bisa melakukan aksi ini");
   }
   return session;
 }

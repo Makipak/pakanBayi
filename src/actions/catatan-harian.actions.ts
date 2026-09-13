@@ -61,8 +61,12 @@ export async function submitCatatanHarian(
     await prisma.catatanHarian.update({
       where: { id: data.catatanHarianId },
       data: {
+        tinggiBadan: data.tinggiBadan,
         beratBadan: data.beratBadan,
         konsumsiNuggetGram: data.konsumsiNuggetGram,
+        karbohidratGram: data.karbohidratGram,
+        proteinGram: data.proteinGram,
+        lemakGram: data.lemakGram,
         statusInput: "TERISI",
         inputBy: session.user.id,
       },

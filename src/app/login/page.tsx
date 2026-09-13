@@ -15,7 +15,7 @@ export default function LoginPage() {
           <LoginForm />
         </Card>
         <p className="mt-4 text-center text-xs text-slate-400">
-          Akun dibuat oleh Admin. Hubungi peneliti jika lupa password.
+          Akun dibuat oleh SPV Kader. Hubungi peneliti jika lupa password.
         </p>
       </div>
     </main>

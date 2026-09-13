@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { Card, EmptyState } from "@/components/ui";
-import { BeratBadanChart } from "@/components/BeratBadanChart";
+import { TrendChart } from "@/components/TrendChart";
 import { IconBack } from "@/components/icons";
 import { complianceRate, delta, formatTanggal } from "@/lib/utils";
 import { todayCatatan } from "@/lib/data";
@@ -30,15 +30,23 @@ export default async function AdminBalitaDetailPage(
   const rate = complianceRate(terisi.length);
   const hariIni = todayCatatan(balita.catatanHarian);
   const beratTerakhir = [...terisi].reverse()[0]?.beratBadan ?? null;
+  const tinggiTerakhir = [...terisi].reverse()[0]?.tinggiBadan ?? null;
   const deltaBB = delta(beratTerakhir, balita.beratBadanAwal);
+  const deltaTB = delta(tinggiTerakhir, balita.tinggiBadanAwal);
+
+  const rataMakro = (
+    field: "karbohidratGram" | "proteinGram" | "lemakGram"
+  ): number | null => {
+    if (terisi.length === 0) return null;
+    const total = terisi.reduce((sum, c) => sum + (c[field] ?? 0), 0);
+    return Math.round((total / terisi.length) * 10) / 10;
+  };
 
   const baseline = balita.hasilLab.find((h) => h.tipe === "BASELINE");
   const endline = balita.hasilLab.find((h) => h.tipe === "ENDLINE");
 
-  const chartData = balita.catatanHarian.map((c) => ({
-    hariKe: c.hariKe,
-    beratBadan: c.beratBadan,
-  }));
+  const bbChartData = balita.catatanHarian.map((c) => ({ hariKe: c.hariKe, nilai: c.beratBadan }));
+  const tbChartData = balita.catatanHarian.map((c) => ({ hariKe: c.hariKe, nilai: c.tinggiBadan }));
 
   return (
     <div className="space-y-6">
@@ -60,7 +68,7 @@ export default async function AdminBalitaDetailPage(
       <Card>
         <h2 className="mb-3 font-medium text-slate-900">Tren Berat Badan</h2>
         {terisi.length > 0 ? (
-          <BeratBadanChart data={chartData} beratAwal={balita.beratBadanAwal} />
+          <TrendChart data={bbChartData} nilaiAwal={balita.beratBadanAwal} unit="kg" label="Berat badan" />
         ) : (
           <EmptyState>Belum ada data berat badan terisi.</EmptyState>
         )}
@@ -85,6 +93,38 @@ export default async function AdminBalitaDetailPage(
         </div>
       </Card>
 
+      <Card>
+        <h2 className="mb-3 font-medium text-slate-900">Tren Tinggi Badan</h2>
+        {terisi.length > 0 ? (
+          <TrendChart
+            data={tbChartData}
+            nilaiAwal={balita.tinggiBadanAwal}
+            unit="cm"
+            label="Tinggi badan"
+            color="#7c3aed"
+          />
+        ) : (
+          <EmptyState>Belum ada data tinggi badan terisi.</EmptyState>
+        )}
+        <div className="mt-4 grid grid-cols-3 gap-3 text-center">
+          <Stat label="TB Awal" value={`${balita.tinggiBadanAwal} cm`} />
+          <Stat label="TB Terakhir" value={tinggiTerakhir ? `${tinggiTerakhir} cm` : "-"} />
+          <Stat
+            label="Delta"
+            value={deltaTB !== null ? `${deltaTB > 0 ? "+" : ""}${deltaTB} cm` : "-"}
+          />
+        </div>
+      </Card>
+
+      <Card>
+        <h2 className="mb-3 font-medium text-slate-900">Rata-rata Asupan Harian</h2>
+        <div className="grid grid-cols-3 gap-3 text-center">
+          <Stat label="Karbohidrat" value={rataMakro("karbohidratGram") !== null ? `${rataMakro("karbohidratGram")} g` : "-"} />
+          <Stat label="Protein" value={rataMakro("proteinGram") !== null ? `${rataMakro("proteinGram")} g` : "-"} />
+          <Stat label="Lemak" value={rataMakro("lemakGram") !== null ? `${rataMakro("lemakGram")} g` : "-"} />
+        </div>
+      </Card>
+
       {balita.status === "AKTIF" && hariIni && (
         <Card>
           <h2 className="mb-3 font-medium text-slate-900">
@@ -94,14 +134,18 @@ export default async function AdminBalitaDetailPage(
             balitaId={balita.id}
             catatanHarianId={hariIni.id}
             hariKe={hariIni.hariKe}
+            defaultTinggiBadan={hariIni.tinggiBadan}
             defaultBeratBadan={hariIni.beratBadan}
             defaultKonsumsi={hariIni.konsumsiNuggetGram}
+            defaultKarbohidrat={hariIni.karbohidratGram}
+            defaultProtein={hariIni.proteinGram}
+            defaultLemak={hariIni.lemakGram}
           />
         </Card>
       )}
 
       <Card>
-        <h2 className="mb-3 font-medium text-slate-900">Hasil Lab (Hb & Zinc)</h2>
+        <h2 className="mb-3 font-medium text-slate-900">Hasil Lab (Hb, Zinc &amp; Fe)</h2>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <LabSummary label="Baseline (Hari-0)" data={baseline} />
           <LabSummary label="Endline (Hari-28)" data={endline} />
@@ -135,7 +179,7 @@ function LabSummary({
   data,
 }: {
   label: string;
-  data?: { hbValue: number; zincValue: number; tanggalPengukuran: Date };
+  data?: { hbValue: number; zincValue: number; feValue: number; tanggalPengukuran: Date };
 }) {
   return (
     <div className="rounded-lg bg-slate-50 p-3">
@@ -144,6 +188,7 @@ function LabSummary({
         <>
           <p className="mt-1 text-sm text-slate-900">Hb: {data.hbValue} g/dL</p>
           <p className="text-sm text-slate-900">Zinc: {data.zincValue} µg/dL</p>
+          <p className="text-sm text-slate-900">Fe: {data.feValue} µg/dL</p>
           <p className="mt-1 text-xs text-slate-400">{formatTanggal(data.tanggalPengukuran)}</p>
         </>
       ) : (
