@@ -35,21 +35,70 @@ model User {
 model Balita {
   id              String   @id @default(cuid())
   nama            String
+  tanggalLahir    DateTime?
   usiaBulan       Int
   jenisKelamin    String // L | P
   tinggiBadanAwal Float
   beratBadanAwal  Float
-  posyandu        String
-  kaderId         String
-  status          String   @default("AKTIF") // AKTIF | SELESAI | DROPOUT
-  tanggalMulai    DateTime @default(now())
-  createdAt       DateTime @default(now())
 
-  kader         User            @relation("KaderBalita", fields: [kaderId], references: [id])
-  catatanHarian CatatanHarian[]
-  hasilLab      HasilLab[]
+  // Data orang tua & kontak
+  namaIbu String?
+  alamat  String?
+  noTelp  String?
+
+  // Wilayah administratif (mengikuti struktur data posyandu)
+  provinsi      String?
+  kabupatenKota String?
+  kecamatan     String?
+  puskesmas     String?
+  desaKelurahan String?
+  posyandu      String
+  rt            String?
+  rw            String?
+
+  kaderId      String
+  status       String   @default("AKTIF") // AKTIF | SELESAI | DROPOUT
+  tanggalMulai DateTime @default(now())
+  createdAt    DateTime @default(now())
+
+  kader                 User                   @relation("KaderBalita", fields: [kaderId], references: [id])
+  catatanHarian         CatatanHarian[]
+  hasilLab              HasilLab[]
+  riwayatPemeriksaanAwal RiwayatPemeriksaanAwal?
 
   @@index([kaderId])
+}
+
+// Data pemeriksaan terakhir SEBELUM proyek ini dimulai (dari catatan posyandu lama) —
+// snapshot satu kali per balita, diinput manual oleh Admin saat registrasi. Terpisah
+// dari HasilLab (BASELINE hari-0) & CatatanHarian (hari-1) milik studi 28 hari ini.
+model RiwayatPemeriksaanAwal {
+  id       String @id @default(cuid())
+  balitaId String @unique
+
+  usiaSaatUkurBulan Int?
+  tanggalPengukuran DateTime?
+  berat             Float?
+  tinggi            Float?
+  caraUkur          String? // Berdiri | Telentang
+  lila              Float? // Lingkar Lengan Atas (cm)
+  bbU               String? // kategori BB/U: Gizi Buruk | Gizi Kurang | Gizi Baik | Gizi Lebih
+  zsBbU             Float? // Z-score BB/U
+  tbU               String? // kategori TB/U: Sangat Pendek | Pendek | Normal | Tinggi
+  zsTbU             Float? // Z-score TB/U
+  bbTb              String? // kategori BB/TB: Gizi Buruk | Gizi Kurang | Gizi Baik | Gizi Lebih
+  zsBbTb            Float? // Z-score BB/TB
+  naikBeratBadan    Boolean?
+  jmlVitA           Int? // jumlah/dosis vitamin A yang sudah diterima
+  kpsp              String? // hasil KPSP: Sesuai | Meragukan | Penyimpangan
+  kia               Boolean? // punya buku KIA
+  kelasIbuBalita    Boolean? // pernah ikut Kelas Ibu Balita
+  mbg               Boolean? // terdaftar program Makan Bergizi Gratis
+  detail            String? // catatan bebas
+
+  createdAt DateTime @default(now())
+
+  balita Balita @relation(fields: [balitaId], references: [id], onDelete: Cascade)
 }
 
 model CatatanHarian {

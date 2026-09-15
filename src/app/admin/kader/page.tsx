@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
-import { Card, EmptyState } from "@/components/ui";
+import { EmptyState } from "@/components/ui";
 import { KaderForm } from "@/components/KaderForm";
-import { KaderDeleteButton } from "@/components/KaderDeleteButton";
+import { KaderRow } from "@/components/KaderRow";
 
 export default async function AdminKaderPage() {
   const kaderList = await prisma.user.findMany({
@@ -24,15 +24,13 @@ export default async function AdminKaderPage() {
       ) : (
         <div className="space-y-3">
           {kaderList.map((k) => (
-            <Card key={k.id} className="flex items-center justify-between gap-3">
-              <div>
-                <p className="font-medium text-slate-900">{k.nama}</p>
-                <p className="text-xs text-slate-500">
-                  @{k.username} · {k._count.balita} balita ditangani
-                </p>
-              </div>
-              <KaderDeleteButton kaderId={k.id} />
-            </Card>
+            <KaderRow
+              key={k.id}
+              kaderId={k.id}
+              nama={k.nama}
+              username={k.username}
+              jumlahBalita={k._count.balita}
+            />
           ))}
         </div>
       )}

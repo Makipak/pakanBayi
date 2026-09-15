@@ -2,18 +2,23 @@
 
 import { useState, useTransition } from "react";
 import { submitHasilLab } from "@/actions/hasil-lab.actions";
-import { Button, FieldError, Input, Label, Select } from "@/components/ui";
+import { Button, FieldError, Input, Label } from "@/components/ui";
+import type { TipeLab } from "@/lib/constants";
 
+// Form ini hanya dirender oleh halaman detail balita PADA HARI studi yang sesuai
+// untuk tipe lab ini (lihat HARI_LAB di constants.ts) — jadi tipe-nya sudah pasti,
+// tidak perlu dropdown pilih tipe lagi (mencegah salah pilih/tidak sengaja menimpa
+// tipe lain). Server (submitHasilLab) tetap menegakkan aturan hari yang sama.
 export function HasilLabForm({
   balitaId,
-  defaultTipe,
-  hasBaseline,
-  hasEndline,
+  tipe,
+  label,
+  sudahDiisi,
 }: {
   balitaId: string;
-  defaultTipe: "BASELINE" | "ENDLINE";
-  hasBaseline: boolean;
-  hasEndline: boolean;
+  tipe: TipeLab;
+  label: string;
+  sudahDiisi: boolean;
 }) {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -33,19 +38,14 @@ export function HasilLabForm({
       className="space-y-3"
     >
       <input type="hidden" name="balitaId" value={balitaId} />
-      <p className="text-sm font-medium text-slate-700">Input hasil lab</p>
-      <div className="grid grid-cols-2 gap-3">
-        <div>
-          <Label htmlFor="tipe">Tipe</Label>
-          <Select id="tipe" name="tipe" defaultValue={defaultTipe}>
-            <option value="BASELINE">Baseline (Hari-0){hasBaseline ? " — update" : ""}</option>
-            <option value="ENDLINE">Endline (Hari-28){hasEndline ? " — update" : ""}</option>
-          </Select>
-        </div>
-        <div>
-          <Label htmlFor="tanggalPengukuran">Tanggal</Label>
-          <Input id="tanggalPengukuran" name="tanggalPengukuran" type="date" required />
-        </div>
+      <input type="hidden" name="tipe" value={tipe} />
+      <p className="text-sm font-medium text-slate-700">
+        Input hasil lab — {label}
+        {sudahDiisi ? " (update)" : ""}
+      </p>
+      <div>
+        <Label htmlFor="tanggalPengukuran">Tanggal</Label>
+        <Input id="tanggalPengukuran" name="tanggalPengukuran" type="date" required />
       </div>
       <div className="grid grid-cols-3 gap-3">
         <div>

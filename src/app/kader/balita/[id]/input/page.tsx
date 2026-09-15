@@ -23,6 +23,13 @@ export default async function InputHarianPage(
 
   const hariIni = todayCatatan(balita.catatanHarian);
 
+  // Hari ke-1 wajib lewat form onboarding gabungan (harian + Baseline) di halaman
+  // detail, bukan lewat halaman input harian biasa ini — supaya baseline tidak
+  // kelewat tidak sengaja.
+  if (hariIni?.hariKe === 1 && hariIni.statusInput !== "TERISI") {
+    redirect(`/kader/balita/${balita.id}`);
+  }
+
   return (
     <div className="space-y-6">
       <Link

@@ -4,7 +4,8 @@ import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { hasilLabSchema } from "@/lib/validators";
-import { HB_MAX_WAJAR, HB_MIN_WAJAR } from "@/lib/constants";
+import { HARI_LAB, HB_MAX_WAJAR, HB_MIN_WAJAR, LABEL_LAB } from "@/lib/constants";
+import { isSameDay } from "@/lib/data";
 import type { ActionResult } from "./balita.actions";
 
 export async function submitHasilLab(formData: FormData): Promise<ActionResult> {
@@ -19,10 +20,25 @@ export async function submitHasilLab(formData: FormData): Promise<ActionResult> 
     }
     const data = parsed.data;
 
-    const balita = await prisma.balita.findUnique({ where: { id: data.balitaId } });
+    const balita = await prisma.balita.findUnique({
+      where: { id: data.balitaId },
+      include: { catatanHarian: true },
+    });
     if (!balita) return { ok: false, error: "Balita tidak ditemukan" };
     if (session.user.role === "KADER" && balita.kaderId !== session.user.id) {
       return { ok: false, error: "Anda tidak punya akses ke balita ini" };
+    }
+
+    // Kunci hari: form hasil lab tiap tipe (baseline/pertengahan/endline) cuma boleh
+    // disimpan pas hari studi yang sesuai — supaya tidak ada yang tidak sengaja
+    // kepencet/keganti di hari lain. Dicek di server, bukan cuma disembunyikan di UI.
+    const hariIni = balita.catatanHarian.find((c) => isSameDay(new Date(c.tanggal), new Date()));
+    const hariTarget = HARI_LAB[data.tipe];
+    if (!hariIni || hariIni.hariKe !== hariTarget) {
+      return {
+        ok: false,
+        error: `Hasil lab ${LABEL_LAB[data.tipe]} hanya bisa diisi pada Hari ke-${hariTarget}.`,
+      };
     }
 
     const outOfRange = data.hbValue < HB_MIN_WAJAR || data.hbValue > HB_MAX_WAJAR;

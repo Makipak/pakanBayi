@@ -6,7 +6,7 @@ import { TrendChart } from "@/components/TrendChart";
 import { IconBack } from "@/components/icons";
 import { complianceRate, delta, formatTanggal } from "@/lib/utils";
 import { todayCatatan } from "@/lib/data";
-import { DURASI_STUDI_HARI } from "@/lib/constants";
+import { DURASI_STUDI_HARI, HARI_LAB, LABEL_LAB, TIPE_LAB } from "@/lib/constants";
 import { HasilLabForm } from "@/components/HasilLabForm";
 import { CatatanHarianForm } from "@/components/CatatanHarianForm";
 import { BalitaStatusForm } from "@/components/BalitaStatusForm";
@@ -22,6 +22,7 @@ export default async function AdminBalitaDetailPage(
       kader: { select: { nama: true } },
       catatanHarian: { orderBy: { hariKe: "asc" } },
       hasilLab: true,
+      riwayatPemeriksaanAwal: true,
     },
   });
   if (!balita) notFound();
@@ -43,7 +44,10 @@ export default async function AdminBalitaDetailPage(
   };
 
   const baseline = balita.hasilLab.find((h) => h.tipe === "BASELINE");
+  const pertengahan = balita.hasilLab.find((h) => h.tipe === "PERTENGAHAN");
   const endline = balita.hasilLab.find((h) => h.tipe === "ENDLINE");
+  // Tipe lab yang "due" hari ini (kalau ada) — form input hanya muncul untuk ini.
+  const tipeLabHariIni = TIPE_LAB.find((t) => hariIni?.hariKe === HARI_LAB[t]);
 
   const bbChartData = balita.catatanHarian.map((c) => ({ hariKe: c.hariKe, nilai: c.beratBadan }));
   const tbChartData = balita.catatanHarian.map((c) => ({ hariKe: c.hariKe, nilai: c.tinggiBadan }));
@@ -64,6 +68,75 @@ export default async function AdminBalitaDetailPage(
       <Card>
         <BalitaStatusForm balitaId={balita.id} currentStatus={balita.status} />
       </Card>
+
+      <Card>
+        <h2 className="mb-3 font-medium text-slate-900">Data Identitas &amp; Kontak</h2>
+        <dl className="grid grid-cols-1 gap-x-4 gap-y-2 text-sm sm:grid-cols-2">
+          <InfoRow label="Tanggal Lahir" value={balita.tanggalLahir ? formatTanggal(balita.tanggalLahir) : null} />
+          <InfoRow label="Nama Ibu Kandung" value={balita.namaIbu} />
+          <InfoRow label="No. Telp" value={balita.noTelp} />
+          <InfoRow label="Alamat" value={balita.alamat} className="sm:col-span-2" />
+          <InfoRow label="Provinsi" value={balita.provinsi} />
+          <InfoRow label="Kab/Kota" value={balita.kabupatenKota} />
+          <InfoRow label="Kecamatan" value={balita.kecamatan} />
+          <InfoRow label="Puskesmas" value={balita.puskesmas} />
+          <InfoRow label="Desa/Kel" value={balita.desaKelurahan} />
+          <InfoRow label="RT/RW" value={balita.rt || balita.rw ? `${balita.rt ?? "-"}/${balita.rw ?? "-"}` : null} />
+        </dl>
+      </Card>
+
+      {balita.riwayatPemeriksaanAwal && (
+        <Card>
+          <h2 className="mb-3 font-medium text-slate-900">
+            Riwayat Pemeriksaan Sebelum Proyek Ini
+          </h2>
+          <dl className="grid grid-cols-1 gap-x-4 gap-y-2 text-sm sm:grid-cols-2">
+            <InfoRow
+              label="Usia Saat Ukur"
+              value={
+                balita.riwayatPemeriksaanAwal.usiaSaatUkurBulan !== null
+                  ? `${balita.riwayatPemeriksaanAwal.usiaSaatUkurBulan} bln`
+                  : null
+              }
+            />
+            <InfoRow
+              label="Tanggal Pengukuran"
+              value={
+                balita.riwayatPemeriksaanAwal.tanggalPengukuran
+                  ? formatTanggal(balita.riwayatPemeriksaanAwal.tanggalPengukuran)
+                  : null
+              }
+            />
+            <InfoRow label="Berat" value={fmtNum(balita.riwayatPemeriksaanAwal.berat, "kg")} />
+            <InfoRow label="Tinggi" value={fmtNum(balita.riwayatPemeriksaanAwal.tinggi, "cm")} />
+            <InfoRow label="Cara Ukur" value={balita.riwayatPemeriksaanAwal.caraUkur} />
+            <InfoRow label="LiLA" value={fmtNum(balita.riwayatPemeriksaanAwal.lila, "cm")} />
+            <InfoRow label="BB/U" value={balita.riwayatPemeriksaanAwal.bbU} />
+            <InfoRow label="ZS BB/U" value={fmtNum(balita.riwayatPemeriksaanAwal.zsBbU)} />
+            <InfoRow label="TB/U" value={balita.riwayatPemeriksaanAwal.tbU} />
+            <InfoRow label="ZS TB/U" value={fmtNum(balita.riwayatPemeriksaanAwal.zsTbU)} />
+            <InfoRow label="BB/TB" value={balita.riwayatPemeriksaanAwal.bbTb} />
+            <InfoRow label="ZS BB/TB" value={fmtNum(balita.riwayatPemeriksaanAwal.zsBbTb)} />
+            <InfoRow
+              label="Naik Berat Badan"
+              value={fmtBool(balita.riwayatPemeriksaanAwal.naikBeratBadan)}
+            />
+            <InfoRow
+              label="Jml Vit A"
+              value={
+                balita.riwayatPemeriksaanAwal.jmlVitA !== null
+                  ? String(balita.riwayatPemeriksaanAwal.jmlVitA)
+                  : null
+              }
+            />
+            <InfoRow label="KPSP" value={balita.riwayatPemeriksaanAwal.kpsp} />
+            <InfoRow label="KIA" value={fmtBool(balita.riwayatPemeriksaanAwal.kia)} />
+            <InfoRow label="Kelas Ibu Balita" value={fmtBool(balita.riwayatPemeriksaanAwal.kelasIbuBalita)} />
+            <InfoRow label="MBG" value={fmtBool(balita.riwayatPemeriksaanAwal.mbg)} />
+            <InfoRow label="Detail" value={balita.riwayatPemeriksaanAwal.detail} className="sm:col-span-2" />
+          </dl>
+        </Card>
+      )}
 
       <Card>
         <h2 className="mb-3 font-medium text-slate-900">Tren Berat Badan</h2>
@@ -146,18 +219,31 @@ export default async function AdminBalitaDetailPage(
 
       <Card>
         <h2 className="mb-3 font-medium text-slate-900">Hasil Lab (Hb, Zinc &amp; Fe)</h2>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <LabSummary label="Baseline (Hari-0)" data={baseline} />
-          <LabSummary label="Endline (Hari-28)" data={endline} />
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <LabSummary label={`${LABEL_LAB.BASELINE} (Hari-${HARI_LAB.BASELINE})`} data={baseline} />
+          <LabSummary
+            label={`${LABEL_LAB.PERTENGAHAN} (Hari-${HARI_LAB.PERTENGAHAN})`}
+            data={pertengahan}
+          />
+          <LabSummary label={`${LABEL_LAB.ENDLINE} (Hari-${HARI_LAB.ENDLINE})`} data={endline} />
         </div>
         {balita.status === "AKTIF" && (
           <div className="mt-4 border-t border-slate-100 pt-4">
-            <HasilLabForm
-              balitaId={balita.id}
-              defaultTipe={!baseline ? "BASELINE" : !endline ? "ENDLINE" : "BASELINE"}
-              hasBaseline={!!baseline}
-              hasEndline={!!endline}
-            />
+            {tipeLabHariIni ? (
+              <HasilLabForm
+                balitaId={balita.id}
+                tipe={tipeLabHariIni}
+                label={LABEL_LAB[tipeLabHariIni]}
+                sudahDiisi={!!balita.hasilLab.find((h) => h.tipe === tipeLabHariIni)}
+              />
+            ) : (
+              <p className="text-xs text-slate-400">
+                Form input hasil lab otomatis terbuka pas Hari ke-{HARI_LAB.BASELINE} (
+                {LABEL_LAB.BASELINE}), Hari ke-{HARI_LAB.PERTENGAHAN} ({LABEL_LAB.PERTENGAHAN}), dan
+                Hari ke-{HARI_LAB.ENDLINE} ({LABEL_LAB.ENDLINE}) — supaya tidak ada yang tidak sengaja
+                kepencet/keganti di hari lain.
+              </p>
+            )}
           </div>
         )}
       </Card>
@@ -172,6 +258,33 @@ function Stat({ label, value }: { label: string; value: string }) {
       <p className="text-xs text-slate-500">{label}</p>
     </div>
   );
+}
+
+function InfoRow({
+  label,
+  value,
+  className,
+}: {
+  label: string;
+  value?: string | null;
+  className?: string;
+}) {
+  return (
+    <div className={className}>
+      <dt className="text-xs text-slate-500">{label}</dt>
+      <dd className="text-slate-900">{value ? value : <span className="text-slate-300">-</span>}</dd>
+    </div>
+  );
+}
+
+function fmtNum(value: number | null | undefined, unit?: string): string | null {
+  if (value === null || value === undefined) return null;
+  return unit ? `${value} ${unit}` : String(value);
+}
+
+function fmtBool(value: boolean | null | undefined): string | null {
+  if (value === null || value === undefined) return null;
+  return value ? "Ya" : "Tidak";
 }
 
 function LabSummary({

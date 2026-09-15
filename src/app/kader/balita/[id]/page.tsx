@@ -7,8 +7,9 @@ import { TrendChart } from "@/components/TrendChart";
 import { IconBack } from "@/components/icons";
 import { complianceRate, delta, formatTanggal } from "@/lib/utils";
 import { todayCatatan } from "@/lib/data";
-import { DURASI_STUDI_HARI } from "@/lib/constants";
+import { DURASI_STUDI_HARI, HARI_LAB, LABEL_LAB, TIPE_LAB } from "@/lib/constants";
 import { HasilLabForm } from "@/components/HasilLabForm";
+import { OnboardingForm } from "@/components/OnboardingForm";
 
 export default async function KaderBalitaDetailPage(
   props: PageProps<"/kader/balita/[id]">
@@ -44,7 +45,20 @@ export default async function KaderBalitaDetailPage(
   };
 
   const baseline = balita.hasilLab.find((h) => h.tipe === "BASELINE");
+  const pertengahan = balita.hasilLab.find((h) => h.tipe === "PERTENGAHAN");
   const endline = balita.hasilLab.find((h) => h.tipe === "ENDLINE");
+
+  // Hari ke-1 (onboarding): input harian + Baseline digabung satu form (lihat
+  // OnboardingForm) — selama ini belum pernah diisi, halaman detail balita
+  // menampilkan form itu saja, bukan dashboard di bawah ini.
+  const hari1 = balita.catatanHarian.find((c) => c.hariKe === 1);
+  const day1BelumSelesai = !hari1 || hari1.statusInput !== "TERISI" || !baseline;
+
+  // Tipe lab yang "due" hari ini (kalau ada) — form input hanya muncul untuk ini.
+  // BASELINE tidak ikut di sini karena sudah ditangani lewat OnboardingForm di atas.
+  const tipeLabHariIni = TIPE_LAB.filter((t) => t !== "BASELINE").find(
+    (t) => hariIni?.hariKe === HARI_LAB[t]
+  );
 
   const bbChartData = balita.catatanHarian.map((c) => ({ hariKe: c.hariKe, nilai: c.beratBadan }));
   const tbChartData = balita.catatanHarian.map((c) => ({ hariKe: c.hariKe, nilai: c.tinggiBadan }));
@@ -65,6 +79,12 @@ export default async function KaderBalitaDetailPage(
         <StatusBadge status={balita.status} />
       </div>
 
+      {balita.status === "AKTIF" && day1BelumSelesai && hari1 ? (
+        <Card>
+          <OnboardingForm balitaId={balita.id} catatanHarianId={hari1.id} />
+        </Card>
+      ) : (
+        <>
       {balita.status === "AKTIF" && (
         <Card className="border-brand/30 bg-brand/5">
           <div className="flex items-center justify-between gap-3">
@@ -147,21 +167,36 @@ export default async function KaderBalitaDetailPage(
 
       <Card>
         <h2 className="mb-3 font-medium text-slate-900">Hasil Lab (Hb, Zinc &amp; Fe)</h2>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <LabSummary label="Baseline (Hari-0)" data={baseline} />
-          <LabSummary label="Endline (Hari-28)" data={endline} />
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <LabSummary label={`${LABEL_LAB.BASELINE} (Hari-${HARI_LAB.BASELINE})`} data={baseline} />
+          <LabSummary
+            label={`${LABEL_LAB.PERTENGAHAN} (Hari-${HARI_LAB.PERTENGAHAN})`}
+            data={pertengahan}
+          />
+          <LabSummary label={`${LABEL_LAB.ENDLINE} (Hari-${HARI_LAB.ENDLINE})`} data={endline} />
         </div>
         {balita.status === "AKTIF" && (
           <div className="mt-4 border-t border-slate-100 pt-4">
-            <HasilLabForm
-              balitaId={balita.id}
-              defaultTipe={!baseline ? "BASELINE" : !endline ? "ENDLINE" : "BASELINE"}
-              hasBaseline={!!baseline}
-              hasEndline={!!endline}
-            />
+            {tipeLabHariIni ? (
+              <HasilLabForm
+                balitaId={balita.id}
+                tipe={tipeLabHariIni}
+                label={LABEL_LAB[tipeLabHariIni]}
+                sudahDiisi={!!balita.hasilLab.find((h) => h.tipe === tipeLabHariIni)}
+              />
+            ) : (
+              <p className="text-xs text-slate-400">
+                Form input hasil lab otomatis terbuka pas Hari ke-{HARI_LAB.BASELINE} (
+                {LABEL_LAB.BASELINE}), Hari ke-{HARI_LAB.PERTENGAHAN} ({LABEL_LAB.PERTENGAHAN}), dan
+                Hari ke-{HARI_LAB.ENDLINE} ({LABEL_LAB.ENDLINE}) — supaya tidak ada yang tidak sengaja
+                kepencet/keganti di hari lain.
+              </p>
+            )}
           </div>
         )}
       </Card>
+        </>
+      )}
     </div>
   );
 }
