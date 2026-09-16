@@ -6,9 +6,9 @@ export default function LoginPage() {
     <main className="flex min-h-svh items-center justify-center p-4">
       <div className="w-full max-w-sm">
         <div className="mb-6 text-center">
-          <h1 className="text-xl font-semibold text-slate-900">Monitoring Gizi Balita</h1>
+          <h1 className="text-xl font-semibold text-slate-900">NUTRIMO</h1>
           <p className="mt-1 text-sm text-slate-500">
-            Studi intervensi nugget zinc — 28 hari
+            Nuget Nutrition Monitoring — studi intervensi nugget zinc, 28 hari
           </p>
         </div>
         <Card>

@@ -29,8 +29,8 @@ export function AppShell({
       {/* Sidebar — muncul di layar >= md, tersembunyi di mobile */}
       <aside className="hidden w-64 shrink-0 border-r border-slate-200 bg-white p-4 md:flex md:flex-col">
         <div className="mb-6 px-2">
-          <h2 className="text-lg font-semibold text-slate-900">Monitoring Gizi</h2>
-          <p className="text-xs text-slate-500">Studi Nugget Zinc — 28 hari</p>
+          <h2 className="text-lg font-semibold text-slate-900">NUTRIMO</h2>
+          <p className="text-xs text-slate-500">Nuget Nutrition Monitoring — 28 hari</p>
         </div>
         <nav className="flex flex-1 flex-col gap-1">
           {navItems.map((item) => (

@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Monitoring Gizi Balita",
-  description: "Sistem monitoring intervensi gizi balita (nugget zinc) — 28 hari",
+  title: "NUTRIMO — Nuget Nutrition Monitoring",
+  description: "NUTRIMO (Nuget Nutrition Monitoring) — sistem monitoring intervensi gizi balita (nugget zinc) selama 28 hari",
 };
 
 export const viewport: Viewport = {
