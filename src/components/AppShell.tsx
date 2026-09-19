@@ -1,9 +1,11 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOutAction } from "@/actions/signout.action";
 import { cn } from "@/lib/utils";
+import logo from "@/assets/Nutrimo.png";
 
 export type NavItem = {
   href: string;
@@ -28,9 +30,12 @@ export function AppShell({
     <div className="flex min-h-svh flex-col md:flex-row">
       {/* Sidebar — muncul di layar >= md, tersembunyi di mobile */}
       <aside className="hidden w-64 shrink-0 border-r border-slate-200 bg-white p-4 md:flex md:flex-col">
-        <div className="mb-6 px-2">
-          <h2 className="text-lg font-semibold text-slate-900">NUTRIMO</h2>
-          <p className="text-xs text-slate-500">Nuget Nutrition Monitoring — 28 hari</p>
+        <div className="mb-6 flex items-center gap-2 px-2">
+          <Image src={logo} alt="NUTRIMO" width={36} height={36} className="rounded-lg" />
+          <div>
+            <h2 className="text-lg font-semibold text-slate-900">NUTRIMO</h2>
+            <p className="text-xs text-slate-500">Nuget Nutrition Monitoring — 28 hari</p>
+          </div>
         </div>
         <nav className="flex flex-1 flex-col gap-1">
           {navItems.map((item) => (
@@ -65,9 +70,12 @@ export function AppShell({
 
       {/* Header mobile */}
       <header className="flex items-center justify-between border-b border-slate-200 bg-white px-4 py-3 md:hidden">
-        <div>
-          <p className="text-sm font-semibold text-slate-900">{userName}</p>
-          <p className="text-xs text-slate-500">{roleLabel}</p>
+        <div className="flex items-center gap-2">
+          <Image src={logo} alt="NUTRIMO" width={28} height={28} className="rounded-md" />
+          <div>
+            <p className="text-sm font-semibold text-slate-900">{userName}</p>
+            <p className="text-xs text-slate-500">{roleLabel}</p>
+          </div>
         </div>
         <form action={signOutAction}>
           <button type="submit" className="text-sm font-medium text-slate-500">
