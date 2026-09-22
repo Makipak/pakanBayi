@@ -10,7 +10,10 @@
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
     "db:seed": "tsx prisma/seed.ts",
-    "db:setup": "prisma generate && prisma db push && tsx prisma/seed.ts"
+    "db:setup": "prisma generate && prisma db push && tsx prisma/seed.ts",
+    "db:generate:prod": "prisma generate --schema=prisma/schema.production.prisma",
+    "db:push:prod": "prisma db push --schema=prisma/schema.production.prisma",
+    "build:prod": "npm run db:generate:prod && next build"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

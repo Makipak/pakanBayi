@@ -1,0 +1,160 @@
+// Schema PRODUCTION (PostgreSQL) — dipakai HANYA saat build untuk deploy.
+// Untuk dev lokal, tetap pakai prisma/schema.prisma (SQLite).
+// Field yang di schema.prisma berupa String (karena SQLite tidak dukung enum)
+// di sini dikembalikan jadi Prisma enum asli. Lihat scripts/build-production.sh
+// untuk cara pakainya.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  KADER
+}
+
+enum JenisKelamin {
+  L
+  P
+}
+
+enum StatusBalita {
+  AKTIF
+  SELESAI
+  DROPOUT
+}
+
+enum StatusInput {
+  TERISI
+  TIDAK_TERISI
+}
+
+enum TipeLab {
+  BASELINE
+  PERTENGAHAN
+  ENDLINE
+}
+
+model User {
+  id           String   @id @default(cuid())
+  username     String   @unique
+  passwordHash String
+  role         Role
+  nama         String
+  createdAt    DateTime @default(now())
+
+  balita        Balita[]        @relation("KaderBalita")
+  catatanHarian CatatanHarian[] @relation("InputCatatan")
+  hasilLab      HasilLab[]      @relation("InputLab")
+}
+
+model Balita {
+  id              String    @id @default(cuid())
+  nama            String
+  tanggalLahir    DateTime?
+  usiaBulan       Int
+  jenisKelamin    JenisKelamin
+  tinggiBadanAwal Float
+  beratBadanAwal  Float
+
+  namaIbu String?
+  alamat  String?
+  noTelp  String?
+
+  provinsi      String?
+  kabupatenKota String?
+  kecamatan     String?
+  puskesmas     String?
+  desaKelurahan String?
+  posyandu      String
+  rt            String?
+  rw            String?
+
+  kaderId      String
+  status       StatusBalita @default(AKTIF)
+  tanggalMulai DateTime     @default(now())
+  createdAt    DateTime     @default(now())
+
+  kader                  User                    @relation("KaderBalita", fields: [kaderId], references: [id])
+  catatanHarian          CatatanHarian[]
+  hasilLab               HasilLab[]
+  riwayatPemeriksaanAwal RiwayatPemeriksaanAwal?
+
+  @@index([kaderId])
+}
+
+// Field kategori di sini (caraUkur, bbU, tbU, bbTb, kpsp) SENGAJA tetap String,
+// bukan enum — nilainya "asumsi" per catatan schema.md §4, belum final.
+model RiwayatPemeriksaanAwal {
+  id       String @id @default(cuid())
+  balitaId String @unique
+
+  usiaSaatUkurBulan Int?
+  tanggalPengukuran DateTime?
+  berat             Float?
+  tinggi            Float?
+  caraUkur          String?
+  lila              Float?
+  bbU               String?
+  zsBbU             Float?
+  tbU               String?
+  zsTbU             Float?
+  bbTb              String?
+  zsBbTb            Float?
+  naikBeratBadan    Boolean?
+  jmlVitA           Int?
+  kpsp              String?
+  kia               Boolean?
+  kelasIbuBalita    Boolean?
+  mbg               Boolean?
+  detail            String?
+
+  createdAt DateTime @default(now())
+
+  balita Balita @relation(fields: [balitaId], references: [id], onDelete: Cascade)
+}
+
+model CatatanHarian {
+  id                 String      @id @default(cuid())
+  balitaId           String
+  tanggal            DateTime
+  hariKe             Int
+  tinggiBadan        Float?
+  beratBadan         Float?
+  konsumsiNuggetGram Float?
+  karbohidratGram    Float?
+  proteinGram        Float?
+  lemakGram          Float?
+  statusInput        StatusInput @default(TIDAK_TERISI)
+  inputBy            String?
+  createdAt          DateTime    @default(now())
+
+  balita Balita @relation(fields: [balitaId], references: [id], onDelete: Cascade)
+  input  User?  @relation("InputCatatan", fields: [inputBy], references: [id])
+
+  @@unique([balitaId, hariKe])
+  @@index([balitaId])
+  @@index([tanggal])
+}
+
+model HasilLab {
+  id                String   @id @default(cuid())
+  balitaId          String
+  tipe              TipeLab
+  hbValue           Float
+  zincValue         Float
+  feValue           Float
+  tanggalPengukuran DateTime
+  inputBy           String?
+  createdAt         DateTime @default(now())
+
+  balita Balita @relation(fields: [balitaId], references: [id], onDelete: Cascade)
+  input  User?  @relation("InputLab", fields: [inputBy], references: [id])
+
+  @@unique([balitaId, tipe])
+}
