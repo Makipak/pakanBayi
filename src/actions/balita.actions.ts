@@ -164,7 +164,7 @@ export async function createBalita(formData: FormData): Promise<ActionResult> {
         balitaId: balita.id,
         tanggal,
         hariKe: day + 1,
-        statusInput: "TIDAK_TERISI",
+        statusInput: "TIDAK_TERISI" as const,
       };
     });
     await prisma.catatanHarian.createMany({ data: rows });

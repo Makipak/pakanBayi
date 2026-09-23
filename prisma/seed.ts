@@ -89,7 +89,7 @@ async function main() {
           balitaId: balita.id,
           tanggal,
           hariKe: day + 1,
-          statusInput: "TIDAK_TERISI",
+          statusInput: "TIDAK_TERISI" as const,
         };
       });
       await prisma.catatanHarian.createMany({ data: rows });
