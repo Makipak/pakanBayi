@@ -10,6 +10,18 @@
 process.env.UV_THREADPOOL_SIZE = process.env.UV_THREADPOOL_SIZE || "2";
 process.env.VIPS_CONCURRENCY = process.env.VIPS_CONCURRENCY || "1";
 
+// FIX (23 Sep 2026): fetch() server-side ke API eksternal (mis. proxy wilayah
+// ke emsifa.com) selalu gagal ETIMEDOUT di hosting ini, padahal curl ke IP yang
+// sama sukses instan. Root cause: Node 18+ "Happy Eyeballs" (autoSelectFamily)
+// coba connect ke beberapa alamat IP sekaligus secara paralel -- semua attempt
+// paralel itu yang ETIMEDOUT, sedangkan koneksi tunggal (net.connect ke 1 IP)
+// sukses <1 detik (confirmed via tes manual). Matikan mekanisme paralel itu,
+// paksa resolve IPv4 dulu dan connect satu-satu kayak curl.
+const net = require("net");
+const dns = require("dns");
+dns.setDefaultResultOrder("ipv4first");
+net.setDefaultAutoSelectFamily(false);
+
 // FIX UTAMA (23 Sep 2026): server ini "melihat" 30 CPU core (nproc/cpuinfo),
 // padahal akun cPanel nggak dapat cgroup CPU quota apa pun. Library yang
 // auto-scale ke jumlah core -- terutama Tokio runtime di dalam Prisma query
