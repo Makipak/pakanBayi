@@ -2,6 +2,18 @@ import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import { DURASI_STUDI_HARI } from "../src/lib/constants";
 
+// Fix sama seperti server.js: batasi CPU affinity SEBELUM instansiasi
+// PrismaClient, supaya Tokio runtime di query engine nggak auto-scale ke
+// 30 core yang keliatan di server (lihat insiden LVE Number of Processes
+// 22-23 Sep 2026). Script standalone kayak seed.ts nggak lewat server.js,
+// jadi perlu guard sendiri di sini.
+try {
+  require("child_process").execFileSync("taskset", ["-pc", "0,1", String(process.pid)]);
+  console.log("[seed] CPU affinity dibatasi ke core 0,1 (taskset)");
+} catch (err) {
+  console.error("[seed] taskset gagal, lanjut tanpa CPU affinity limit:", (err as Error).message);
+}
+
 const prisma = new PrismaClient();
 
 async function hash(pw: string) {
