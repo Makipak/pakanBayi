@@ -177,6 +177,114 @@ export async function createBalita(formData: FormData): Promise<ActionResult> {
   }
 }
 
+export async function updateBalita(balitaId: string, formData: FormData): Promise<ActionResult> {
+  try {
+    await requireAdmin();
+    const raw = Object.fromEntries(formData.entries());
+    const normalized = withDefaultKeys(withDefaultKeys(raw, BALITA_OPTIONAL_KEYS), RIWAYAT_KEYS);
+
+    const parsed = balitaSchema.safeParse(normalized);
+    if (!parsed.success) {
+      return { ok: false, error: parsed.error.issues[0]?.message ?? "Data tidak valid" };
+    }
+    const data = parsed.data;
+
+    const riwayatParsed = riwayatPemeriksaanSchema.safeParse(normalized);
+    if (!riwayatParsed.success) {
+      return {
+        ok: false,
+        error: riwayatParsed.error.issues[0]?.message ?? "Data riwayat pemeriksaan tidak valid",
+      };
+    }
+    const riwayat = riwayatParsed.data;
+
+    const existing = await prisma.balita.findUnique({
+      where: { id: balitaId },
+      select: { id: true, kaderId: true },
+    });
+    if (!existing) return { ok: false, error: "Balita tidak ditemukan" };
+
+    const kader = await prisma.user.findFirst({
+      where: { id: data.kaderId, role: "KADER" },
+      select: { id: true },
+    });
+    if (!kader) return { ok: false, error: "Kader penanggung jawab tidak valid" };
+
+    // Beda dengan create: di edit, field opsional yang dikosongkan HARUS menghapus nilai
+    // lama (null), bukan di-skip — makanya pakai `?? null`, bukan undefined.
+    await prisma.balita.update({
+      where: { id: balitaId },
+      data: {
+        nama: data.nama,
+        usiaBulan: data.usiaBulan,
+        jenisKelamin: data.jenisKelamin,
+        tinggiBadanAwal: data.tinggiBadanAwal,
+        beratBadanAwal: data.beratBadanAwal,
+        posyandu: data.posyandu,
+        kaderId: data.kaderId,
+        tanggalLahir: data.tanggalLahir ? new Date(data.tanggalLahir) : null,
+        namaIbu: data.namaIbu ?? null,
+        alamat: data.alamat ?? null,
+        noTelp: data.noTelp ?? null,
+        provinsi: data.provinsi ?? null,
+        kabupatenKota: data.kabupatenKota ?? null,
+        kecamatan: data.kecamatan ?? null,
+        puskesmas: data.puskesmas ?? null,
+        desaKelurahan: data.desaKelurahan ?? null,
+        rt: data.rt ?? null,
+        rw: data.rw ?? null,
+      },
+    });
+
+    const adaRiwayat = RIWAYAT_KEYS.some((key) => {
+      const value = raw[key];
+      return typeof value === "string" && value.trim().length > 0;
+    });
+
+    if (adaRiwayat) {
+      const riwayatData = {
+        usiaSaatUkurBulan: riwayat.usiaSaatUkurBulan ?? null,
+        tanggalPengukuran: riwayat.tanggalPengukuran ? new Date(riwayat.tanggalPengukuran) : null,
+        berat: riwayat.berat ?? null,
+        tinggi: riwayat.tinggi ?? null,
+        caraUkur: riwayat.caraUkur ?? null,
+        lila: riwayat.lila ?? null,
+        bbU: riwayat.bbU ?? null,
+        zsBbU: riwayat.zsBbU ?? null,
+        tbU: riwayat.tbU ?? null,
+        zsTbU: riwayat.zsTbU ?? null,
+        bbTb: riwayat.bbTb ?? null,
+        zsBbTb: riwayat.zsBbTb ?? null,
+        naikBeratBadan: riwayat.naikBeratBadan ?? null,
+        jmlVitA: riwayat.jmlVitA ?? null,
+        kpsp: riwayat.kpsp ?? null,
+        kia: riwayat.kia ?? null,
+        kelasIbuBalita: riwayat.kelasIbuBalita ?? null,
+        mbg: riwayat.mbg ?? null,
+        detail: riwayat.detail ?? null,
+      };
+      await prisma.riwayatPemeriksaanAwal.upsert({
+        where: { balitaId },
+        create: { balitaId, ...riwayatData },
+        update: riwayatData,
+      });
+    } else {
+      // Semua isian riwayat dikosongkan → hapus baris riwayat (kalau ada).
+      await prisma.riwayatPemeriksaanAwal.deleteMany({ where: { balitaId } });
+    }
+
+    revalidatePath("/admin/balita");
+    revalidatePath(`/admin/balita/${balitaId}`);
+    revalidatePath("/admin/dashboard");
+    // Kader lama & baru bisa berubah kalau balita dipindah tugas.
+    revalidatePath("/kader");
+    revalidatePath(`/kader/balita/${balitaId}`);
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : "Gagal update balita" };
+  }
+}
+
 export async function updateBalitaStatus(
   balitaId: string,
   formData: FormData

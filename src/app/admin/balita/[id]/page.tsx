@@ -10,11 +10,18 @@ import { DURASI_STUDI_HARI, HARI_LAB, LABEL_LAB, TIPE_LAB } from "@/lib/constant
 import { HasilLabForm } from "@/components/HasilLabForm";
 import { CatatanHarianForm } from "@/components/CatatanHarianForm";
 import { BalitaStatusForm } from "@/components/BalitaStatusForm";
+import { BalitaEditForm } from "@/components/BalitaEditForm";
 
 export default async function AdminBalitaDetailPage(
   props: PageProps<"/admin/balita/[id]">
 ) {
   const { id } = await props.params;
+
+  const kaderList = await prisma.user.findMany({
+    where: { role: "KADER" },
+    select: { id: true, nama: true },
+    orderBy: { nama: "asc" },
+  });
 
   const balita = await prisma.balita.findUnique({
     where: { id },
@@ -68,6 +75,39 @@ export default async function AdminBalitaDetailPage(
       <Card>
         <BalitaStatusForm balitaId={balita.id} currentStatus={balita.status} />
       </Card>
+
+      <BalitaEditForm
+        balitaId={balita.id}
+        kaderList={kaderList}
+        defaults={{
+          nama: balita.nama,
+          usiaBulan: balita.usiaBulan,
+          jenisKelamin: balita.jenisKelamin,
+          tanggalLahir: toDateInput(balita.tanggalLahir),
+          tinggiBadanAwal: balita.tinggiBadanAwal,
+          beratBadanAwal: balita.beratBadanAwal,
+          kaderId: balita.kaderId,
+          namaIbu: balita.namaIbu,
+          noTelp: balita.noTelp,
+          alamat: balita.alamat,
+          provinsi: balita.provinsi,
+          kabupatenKota: balita.kabupatenKota,
+          kecamatan: balita.kecamatan,
+          desaKelurahan: balita.desaKelurahan,
+          puskesmas: balita.puskesmas,
+          posyandu: balita.posyandu,
+          rt: balita.rt,
+          rw: balita.rw,
+        }}
+        riwayat={
+          balita.riwayatPemeriksaanAwal
+            ? {
+                ...balita.riwayatPemeriksaanAwal,
+                tanggalPengukuran: toDateInput(balita.riwayatPemeriksaanAwal.tanggalPengukuran),
+              }
+            : null
+        }
+      />
 
       <Card>
         <h2 className="mb-3 font-medium text-slate-900">Data Identitas &amp; Kontak</h2>
@@ -275,6 +315,10 @@ function InfoRow({
       <dd className="text-slate-900">{value ? value : <span className="text-slate-300">-</span>}</dd>
     </div>
   );
+}
+
+function toDateInput(d: Date | null | undefined): string {
+  return d ? d.toISOString().slice(0, 10) : "";
 }
 
 function fmtNum(value: number | null | undefined, unit?: string): string | null {

@@ -20,13 +20,16 @@ export function WilayahSelect({
   defaultKabupatenKota = "",
   defaultKecamatan = "",
   defaultDesaKelurahan = "",
+  initialManual = false,
 }: {
   defaultProvinsi?: string;
   defaultKabupatenKota?: string;
   defaultKecamatan?: string;
   defaultDesaKelurahan?: string;
+  // Mulai dari isian teks (dipakai form Edit: nilai tersimpan berupa nama, bukan ID API).
+  initialManual?: boolean;
 }) {
-  const [manualMode, setManualMode] = useState(false);
+  const [manualMode, setManualMode] = useState(initialManual);
   const [loadError, setLoadError] = useState<string | null>(null);
 
   const [provinces, setProvinces] = useState<WilayahItem[]>([]);
