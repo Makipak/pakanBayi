@@ -10,9 +10,12 @@ export async function loginAction(
   try {
     const username = String(formData.get("username") ?? "");
     const password = String(formData.get("password") ?? "");
+    // Checkbox HTML: ada di FormData ("on") kalau dicentang, tidak ada sama sekali kalau tidak.
+    const remember = formData.get("remember") === "on";
     await signIn("credentials", {
       username,
       password,
+      remember: remember ? "true" : "false",
       redirectTo: "/",
     });
   } catch (e) {

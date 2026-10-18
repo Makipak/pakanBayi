@@ -23,6 +23,15 @@ export function LoginForm() {
           required
         />
       </div>
+      <label className="flex items-center gap-2 text-sm text-slate-700">
+        <input
+          type="checkbox"
+          name="remember"
+          defaultChecked
+          className="h-4 w-4 rounded border-slate-300"
+        />
+        Ingat saya
+      </label>
       <FieldError>{state?.error}</FieldError>
       <Button type="submit" disabled={pending} className="w-full">
         {pending ? "Masuk..." : "Masuk"}

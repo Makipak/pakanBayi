@@ -123,6 +123,7 @@ muncul di form input aktif, tapi tetap muncul di export dengan penanda status.
 - Kader tidak bisa dihapus kalau masih menangani balita aktif — harus dipindah ke kader lain dulu
   (dicek di `deleteKader`).
 - Satu kader = satu akun, tidak ada shared account.
+- **Login "Ingat saya"** (checkbox, default tercentang): dicentang → sesi bertahan 30 hari; tidak dicentang → sesi habis dalam 12 jam. Nilainya di `src/auth.ts` (`INGAT_SAYA_DETIK`, `TANPA_INGAT_SAYA_DETIK`). Jangan dicentang di perangkat bersama.
 
 ## 11. Future Enhancements (masih di luar scope)
 

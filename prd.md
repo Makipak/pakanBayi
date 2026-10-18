@@ -63,7 +63,7 @@ akun kader (edit ditambahkan setelah rencana v1 — sebelumnya cuma tambah/hapus
   lihat §8 di `rule.md`)
 - Dashboard progres per balita (grafik tren berat badan & tinggi badan 28 hari, ringkasan asupan,
   ringkasan lab)
-- Dashboard agregat untuk Admin
+- Dashboard agregat untuk Admin (daftar "Compliance per Balita" dipaginasi 10 baris/halaman lewat `?page=N`, urut dari compliance terendah)
 - Export data (CSV) untuk kebutuhan analisis statistik (SPSS/Excel)
 - Penandaan hari yang tidak diisi kader ("tidak terisi") untuk compliance tracking
 
