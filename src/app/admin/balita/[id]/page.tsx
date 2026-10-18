@@ -34,6 +34,14 @@ export default async function AdminBalitaDetailPage(
   });
   if (!balita) notFound();
 
+  // Data identitas/kontak/wilayah tidak diinput lagi; tampilkan read-only hanya kalau
+  // balita ini punya data lama.
+  const adaDataIdentitas = [
+    balita.tanggalLahir, balita.namaIbu, balita.noTelp, balita.alamat, balita.provinsi,
+    balita.kabupatenKota, balita.kecamatan, balita.puskesmas, balita.desaKelurahan,
+    balita.rt, balita.rw,
+  ].some(Boolean);
+
   const terisi = balita.catatanHarian.filter((c) => c.statusInput === "TERISI");
   const rate = complianceRate(terisi.length);
   const hariIni = todayCatatan(balita.catatanHarian);
@@ -68,7 +76,7 @@ export default async function AdminBalitaDetailPage(
       <div>
         <h1 className="text-xl font-semibold text-slate-900">{balita.nama}</h1>
         <p className="text-sm text-slate-500">
-          {balita.posyandu} · Kader: {balita.kader.nama} · {balita.usiaBulan} bln
+          {balita.posyandu ? `${balita.posyandu} · ` : ""}Kader: {balita.kader.nama} · {balita.usiaBulan} bln
         </p>
       </div>
 
@@ -83,34 +91,15 @@ export default async function AdminBalitaDetailPage(
           nama: balita.nama,
           usiaBulan: balita.usiaBulan,
           jenisKelamin: balita.jenisKelamin,
-          tanggalLahir: toDateInput(balita.tanggalLahir),
           tinggiBadanAwal: balita.tinggiBadanAwal,
           beratBadanAwal: balita.beratBadanAwal,
           kaderId: balita.kaderId,
-          namaIbu: balita.namaIbu,
-          noTelp: balita.noTelp,
-          alamat: balita.alamat,
-          provinsi: balita.provinsi,
-          kabupatenKota: balita.kabupatenKota,
-          kecamatan: balita.kecamatan,
-          desaKelurahan: balita.desaKelurahan,
-          puskesmas: balita.puskesmas,
-          posyandu: balita.posyandu,
-          rt: balita.rt,
-          rw: balita.rw,
         }}
-        riwayat={
-          balita.riwayatPemeriksaanAwal
-            ? {
-                ...balita.riwayatPemeriksaanAwal,
-                tanggalPengukuran: toDateInput(balita.riwayatPemeriksaanAwal.tanggalPengukuran),
-              }
-            : null
-        }
       />
 
+      {adaDataIdentitas && (
       <Card>
-        <h2 className="mb-3 font-medium text-slate-900">Data Identitas &amp; Kontak</h2>
+        <h2 className="mb-3 font-medium text-slate-900">Data Identitas &amp; Kontak (data lama)</h2>
         <dl className="grid grid-cols-1 gap-x-4 gap-y-2 text-sm sm:grid-cols-2">
           <InfoRow label="Tanggal Lahir" value={balita.tanggalLahir ? formatTanggal(balita.tanggalLahir) : null} />
           <InfoRow label="Nama Ibu Kandung" value={balita.namaIbu} />
@@ -124,6 +113,7 @@ export default async function AdminBalitaDetailPage(
           <InfoRow label="RT/RW" value={balita.rt || balita.rw ? `${balita.rt ?? "-"}/${balita.rw ?? "-"}` : null} />
         </dl>
       </Card>
+      )}
 
       {balita.riwayatPemeriksaanAwal && (
         <Card>
@@ -315,10 +305,6 @@ function InfoRow({
       <dd className="text-slate-900">{value ? value : <span className="text-slate-300">-</span>}</dd>
     </div>
   );
-}
-
-function toDateInput(d: Date | null | undefined): string {
-  return d ? d.toISOString().slice(0, 10) : "";
 }
 
 function fmtNum(value: number | null | undefined, unit?: string): string | null {

@@ -52,7 +52,7 @@ model Balita {
   kecamatan     String?
   puskesmas     String?
   desaKelurahan String?
-  posyandu      String
+  posyandu      String? // tidak lagi diisi di form (data lama tetap tersimpan)
   rt            String?
   rw            String?
 

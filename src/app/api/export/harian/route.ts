@@ -19,7 +19,7 @@ export async function GET() {
   const rows = catatan.map((c) => ({
     id_balita: c.balitaId,
     nama_balita: c.balita.nama,
-    posyandu: c.balita.posyandu,
+    posyandu: c.balita.posyandu ?? "",
     kader: c.balita.kader.nama,
     hari_ke: c.hariKe,
     tanggal: c.tanggal.toISOString().slice(0, 10),

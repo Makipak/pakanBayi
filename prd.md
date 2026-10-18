@@ -6,6 +6,10 @@
 > bernama **NUTRIMO** — nama sebelumnya "Sistem Monitoring Intervensi Gizi Balita (Nugget Zinc)"
 > masih dipakai sebagai deskripsi/subjudul di beberapa tempat.
 
+> **Update 18 Okt 2026 — form input balita disederhanakan:** hanya 6 field (nama, usia, jenis kelamin,
+> tinggi badan, berat badan, kader penanggung jawab). Field kontak, wilayah, posyandu, dan riwayat
+> pemeriksaan sudah tidak diisi lagi; data lama tetap tersimpan dan tampil read-only.
+
 ## 1. Latar Belakang
 
 Studi intervensi gizi untuk memantau efektivitas pemberian nugget (fortifikasi zinc) terhadap
@@ -26,9 +30,8 @@ menyediakan agregasi data untuk kebutuhan analisis skripsi.
 2. Mencatat hasil lab (Hb, Zinc, Fe) pada **3 checkpoint**: Baseline (hari-1), Pertengahan
    (hari-14), Endline (hari-28) — dengan pengamanan supaya data tidak ke-input/ke-ubah tidak
    sengaja di hari yang salah.
-3. Mencatat data identitas, kontak, wilayah administratif, dan riwayat pemeriksaan posyandu
-   sebelum balita ikut studi ini — supaya data setara dengan catatan posyandu manual yang sudah
-   ada.
+3. Mencatat data balita seminimal mungkin saat registrasi (nama, usia, jenis kelamin, tinggi &
+   berat badan awal, kader penanggung jawab) supaya pendaftaran cepat dan tidak membebani kader.
 4. Memberi peneliti (SPV Kader/Admin) visibilitas penuh atas seluruh data balita untuk kebutuhan
    analisis dan pelaporan skripsi (Bab 4).
 5. Menjaga akuntabilitas data — setiap catatan tertaut ke akun kader yang menginputnya.
@@ -48,14 +51,8 @@ akun kader (edit ditambahkan setelah rencana v1 — sebelumnya cuma tambah/hapus
 ### In-scope (aktual)
 
 - Autentikasi & role-based access (Admin/"SPV Kader", Kader)
-- CRUD data balita oleh Admin, assign ke Kader, termasuk:
-  - Data identitas & kontak: tanggal lahir, nama ibu kandung, alamat, no. telp
-  - Wilayah administratif: Provinsi/Kab-Kota/Kecamatan/Desa-Kel (dropdown berjenjang, klik saja
-    — lihat §7), Puskesmas, Posyandu, RT/RW
-  - Riwayat pemeriksaan posyandu sebelum proyek ini (opsional, satu kali/snapshot): usia saat
-    ukur, tanggal, berat/tinggi, cara ukur, LiLA, kategori BB/U & TB/U & BB/TB + Z-score,
-    kenaikan berat badan, jumlah Vit A, hasil KPSP, kepemilikan KIA, keikutsertaan Kelas Ibu
-    Balita, status MBG, catatan detail
+- CRUD data balita oleh Admin, assign ke Kader. Data yang diinput: nama, usia (bulan), jenis
+  kelamin, tinggi badan awal, berat badan awal, dan kader penanggung jawab (lihat §5)
 - CRUD akun kader oleh Admin (tambah, **edit**, hapus)
 - Input harian oleh Kader: berat badan, tinggi badan, konsumsi nugget (gram), dan asupan
   karbohidrat/protein/lemak (gram)
@@ -79,28 +76,19 @@ akun kader (edit ditambahkan setelah rencana v1 — sebelumnya cuma tambah/hapus
 - Aplikasi mobile native (cukup web app responsive, mobile-first)
 - Multi-studi / multi-cohort
 - Toleransi keterlambatan checkpoint lab yang terlewat (lihat `rule.md` §7)
-- Deployment ke cloud (saat ini jalan lokal di komputer peneliti — lihat `architecture.md` §8
-  untuk catatan migrasi kalau nanti dibutuhkan)
+- Deployment ke Vercel/cloud managed — produksi berjalan di server sendiri (lihat `architecture.md` §8)
 
-## 5. Data Baseline Balita (dicatat saat registrasi) — Diperbarui
+## 5. Data Balita (dicatat saat registrasi) — Disederhanakan
 
-Data inti (wajib):
+Hanya 6 field, semuanya wajib:
 
-- Nama, usia (bulan), jenis kelamin, tinggi & berat badan awal, posyandu, kader penanggung jawab
+- Nama, usia (bulan, 0–59), jenis kelamin, tinggi badan awal (cm), berat badan awal (kg), kader
+  penanggung jawab
 
-Data identitas & kontak (opsional):
-
-- Tanggal lahir, nama ibu kandung, alamat, no. telp
-
-Data wilayah administratif (opsional, provinsi/kab-kota/kecamatan/desa via dropdown berjenjang):
-
-- Provinsi, Kab/Kota, Kecamatan, Puskesmas, Desa/Kel, RT, RW
-
-Riwayat pemeriksaan posyandu sebelum proyek ini (opsional, satu kali):
-
-- Usia saat ukur, tanggal pengukuran, berat, tinggi, cara ukur, LiLA, BB/U + Z-score, TB/U +
-  Z-score, BB/TB + Z-score, naik berat badan, jumlah Vit A, hasil KPSP, punya KIA, ikut Kelas
-  Ibu Balita, terdaftar MBG, catatan detail
+**Dihapus dari form (18 Okt 2026):** tanggal lahir, nama ibu, alamat, no. telp, wilayah administratif
+(provinsi s/d desa, puskesmas, RT/RW), posyandu, dan riwayat pemeriksaan posyandu sebelumnya.
+Kolomnya tetap ada di database (nullable) sehingga data balita lama tidak hilang dan tampil
+read-only di halaman detail admin.
 
 ## 6. Indikator & Frekuensi Pengukuran — Diperbarui
 
@@ -114,9 +102,7 @@ Riwayat pemeriksaan posyandu sebelum proyek ini (opsional, satu kali):
 
 ## 7. Fitur UX Baru (tidak ada di rencana awal)
 
-- **Dropdown wilayah berjenjang**: Provinsi → Kab/Kota → Kecamatan → Desa/Kel tinggal pilih dari
-  dropdown (data dari API publik wilayah Indonesia), tidak perlu ketik manual — dengan fallback
-  isi manual kalau koneksi ke sumber data bermasalah.
+- ~~Dropdown wilayah berjenjang~~ — **dihapus** bersama field wilayah (18 Okt 2026).
 - **Onboarding hari-1 gabungan**: mengurangi jumlah langkah kader saat balita baru mulai ikut
   studi (satu form, bukan dua form terpisah di dua halaman).
 - **Kunci hari untuk hasil lab**: mencegah data Hb/Zinc/Fe ke-input atau ke-ubah tidak sengaja di
@@ -149,7 +135,7 @@ Riwayat pemeriksaan posyandu sebelum proyek ini (opsional, satu kali):
   seperti rencana awal.
 - Semua input manual, tidak ada integrasi alat digital (timbangan/lab otomatis).
 - Studi berjalan satu periode 28 hari (bukan sistem multi-periode berulang).
-- Sistem jalan lokal di komputer peneliti (SQLite lokal) — bukan cloud-hosted, untuk saat ini.
+- Dev lokal memakai SQLite (`prisma/dev.db`); produksi berjalan di server sendiri (cPanel Node.js) dengan PostgreSQL — lihat `architecture.md` §8.
 - Set kategori riwayat pemeriksaan (cara ukur, BB/U, TB/U, BB/TB, KPSP) adalah asumsi awal —
   perlu dicek kembali kesesuaiannya dengan istilah yang dipakai posyandu di lapangan.
 

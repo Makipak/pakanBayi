@@ -4,12 +4,16 @@
 > onboarding hari-1, kader sekarang bisa di-update (bukan cuma add/delete), dan validasi field
 > baru di `Balita`/`RiwayatPemeriksaanAwal`. Proyek ini sekarang bernama **NUTRIMO**.
 
+> **Update 18 Okt 2026 — form input balita disederhanakan:** hanya 6 field (nama, usia, jenis kelamin,
+> tinggi badan, berat badan, kader penanggung jawab). Field kontak, wilayah, posyandu, dan riwayat
+> pemeriksaan sudah tidak diisi lagi; data lama tetap tersimpan dan tampil read-only.
+
 ## 1. Role Permission Matrix
 
 | Aksi | Admin ("SPV Kader" di UI) | Kader |
 |---|---|---|
 | Lihat semua balita | ✅ | ❌ (hanya balita miliknya) |
-| Tambah balita (+ riwayat pemeriksaan awal) | ✅ | ❌ |
+| Tambah & edit balita (6 field) | ✅ | ❌ |
 | Update status balita (AKTIF/SELESAI/DROPOUT) | ✅ | ❌ |
 | Hapus balita | ✅ | ❌ |
 | Input `CatatanHarian` (harian) | ✅ (semua balita) | ✅ (hanya balita miliknya) |
@@ -52,15 +56,17 @@ berdasarkan `kaderId = session.user.id` di level query database, bukan hanya dis
 | `usiaBulan` | 0–59 bulan. |
 | `jenisKelamin` | `L` \| `P`. |
 | `tinggiBadanAwal`, `beratBadanAwal` | Wajib diisi, angka positif. |
-| `posyandu` | Wajib diisi (teks bebas). |
-| `kaderId` | Wajib dipilih. |
-| `tanggalLahir`, `namaIbu`, `alamat`, `noTelp`, `provinsi`, `kabupatenKota`, `kecamatan`, `puskesmas`, `desaKelurahan`, `rt`, `rw` | **Semua opsional** — boleh dikosongkan tanpa gagal submit. `provinsi`/`kabupatenKota`/`kecamatan`/`desaKelurahan` diisi via dropdown berjenjang (bisa fallback isi manual — lihat `architecture.md` §7), sisanya isian teks bebas. |
+| `nama` | Wajib diisi (spasi di awal/akhir dibuang). |
+| `kaderId` | Wajib dipilih; harus akun berrole `KADER` (dicek di `createBalita` & `updateBalita`). |
 
-## 5. Validasi Input — `RiwayatPemeriksaanAwal`
+Field lain (kontak, wilayah, posyandu, riwayat) **tidak ada di form dan tidak divalidasi lagi**.
+`updateBalita` hanya mengubah 6 field di atas; data lama pada kolom legacy tidak disentuh.
 
-Semua field **opsional**. Baris ini hanya dibuat kalau **minimal satu** field-nya diisi saat
-submit form Tambah Balita — kalau bagian "Riwayat Pemeriksaan Sebelum Proyek Ini" tidak pernah
-dibuka/diisi sama sekali, tidak ada baris `RiwayatPemeriksaanAwal` yang dibuat untuk balita itu.
+## 5. `RiwayatPemeriksaanAwal` (legacy)
+
+Form pengisian riwayat pemeriksaan sudah **dihapus** (18 Okt 2026) dan tidak ada validasinya lagi.
+Tabel dan data lama dipertahankan; tampil read-only di detail admin hanya untuk balita yang
+memang punya datanya.
 
 ## 6. Aturan Data Hilang (Missing Data) — `CatatanHarian`
 
@@ -130,4 +136,3 @@ muncul di form input aktif, tapi tetap muncul di export dengan penanda status.
 - 🔲 Multi-studi / multi-cohort
 - 🔲 Alert otomatis kalau berat badan balita turun signifikan (butuh threshold klinis yang tervalidasi)
 - 🔲 Integrasi alat ukur digital (timbangan/lab terhubung otomatis)
-- 🔲 Rapikan format nama wilayah dari API (kadang huruf besar semua, mis. "JAWA BARAT") jadi Title Case

@@ -37,7 +37,7 @@ export async function GET() {
       nama: b.nama,
       usia_bulan: b.usiaBulan,
       jenis_kelamin: b.jenisKelamin,
-      posyandu: b.posyandu,
+      posyandu: b.posyandu ?? "",
       kader: b.kader.nama,
       status: b.status,
       tinggi_badan_awal_cm: b.tinggiBadanAwal,

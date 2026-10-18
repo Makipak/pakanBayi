@@ -5,6 +5,10 @@
 > aplikasi yang ditampilkan ke user sekarang **NUTRIMO** — nama folder/package proyek
 > (`balita-feed`) tidak diganti, ini murni rebrand tampilan (title tab, sidebar, halaman login).
 
+> **Update 18 Okt 2026 — form input balita disederhanakan:** hanya 6 field (nama, usia, jenis kelamin,
+> tinggi badan, berat badan, kader penanggung jawab). Field kontak, wilayah, posyandu, dan riwayat
+> pemeriksaan sudah tidak diisi lagi; data lama tetap tersimpan dan tampil read-only.
+
 ## 1. Tech Stack (aktual)
 
 | Layer | Pilihan | Perubahan dari rencana awal |
@@ -18,8 +22,7 @@
 | Chart | **Recharts** | Sesuai rencana — `TrendChart` generic component untuk tren BB & TB |
 | Validasi | **Zod v4** | Ditambahkan (belum eksplisit di rencana awal) — skema di `src/lib/validators.ts` |
 | Export | **PapaParse** (CSV) | Rencana awal exceljs/SheetJS — diganti CSV polos (PapaParse) karena SPSS/Excel bisa baca CSV langsung, lebih ringan |
-| Data wilayah | **emsifa/api-wilayah-indonesia** (proxy server-side) | Fitur baru, tidak ada di rencana awal — lihat §7 |
-| Deployment | **Belum dideploy** — jalan lokal (`npm run dev`) di komputer peneliti | Rencana awal Vercel + Neon/Supabase; untuk kebutuhan skripsi saat ini cukup lokal. Kalau nanti deploy, lihat catatan migrasi di §8 |
+| Deployment | **Server sendiri (cPanel Node.js / Passenger)** + PostgreSQL | Bukan Vercel. Entry point `server.js`; build pakai `schema.production.prisma` — lihat §8. Dev lokal tetap SQLite (`npm run dev`) |
 
 ## 2. System Architecture (aktual — jalan lokal)
 
@@ -35,14 +38,12 @@ graph TD
         end
         F[(SQLite - prisma/dev.db)]
     end
-    G[emsifa.github.io - API wilayah Indonesia]
 
     A -->|HTTP| B
     B --> D
     D --> C
     C --> E
     E --> F
-    C -->|route /api/wilayah/* - server fetch, hindari CORS| G
 ```
 
 ## 3. Auth & Authorization Flow
@@ -95,7 +96,8 @@ login (`src/app/login/page.tsx`). Tidak mengubah struktur folder, nama package (
 ```
 balita-feed/                          # nama folder/package tidak diganti (lihat catatan di atas)
 ├── prisma/
-│   ├── schema.prisma
+│   ├── schema.prisma                # SQLite (dev lokal)
+│   ├── schema.production.prisma     # PostgreSQL (produksi, enum asli)
 │   └── seed.ts                      # seed kosong: 1 admin + 4 kader, TANPA balita/catatan
 │                                     # dummy — supaya kader bisa dites dari kondisi awal asli
 ├── src/
@@ -117,17 +119,12 @@ balita-feed/                          # nama folder/package tidak diganti (lihat
 │   │   │       └── input/page.tsx   # input harian (hari ke-2 dst.)
 │   │   └── api/
 │   │       ├── auth/[...nextauth]/route.ts
-│   │       ├── export/
-│   │       │   ├── harian/route.ts
-│   │       │   └── ringkasan/route.ts
-│   │       └── wilayah/             # proxy server-side ke emsifa (hindari CORS) — lihat §7
-│   │           ├── provinces/route.ts
-│   │           ├── regencies/[provinceId]/route.ts
-│   │           ├── districts/[regencyId]/route.ts
-│   │           └── villages/[districtId]/route.ts
+│   │       └── export/
+│   │           ├── harian/route.ts
+│   │           └── ringkasan/route.ts
 │   ├── actions/                     # Server Actions
 │   │   ├── auth.actions.ts
-│   │   ├── balita.actions.ts        # createBalita, updateBalitaStatus, deleteBalita,
+│   │   ├── balita.actions.ts        # createBalita, updateBalita, updateBalitaStatus, deleteBalita,
 │   │   │                             # createKader, updateKader, deleteKader
 │   │   ├── catatan-harian.actions.ts
 │   │   ├── hasil-lab.actions.ts     # kunci hari per tipe lab (lihat rule.md §7)
@@ -138,24 +135,24 @@ balita-feed/                          # nama folder/package tidak diganti (lihat
 │   │   ├── constants.ts             # ROLES, TIPE_LAB, HARI_LAB, LABEL_LAB, dll.
 │   │   ├── validators.ts            # semua Zod schema
 │   │   ├── data.ts                  # isSameDay, todayCatatan
-│   │   ├── utils.ts                 # formatTanggal, complianceRate, delta, cn
-│   │   ├── wilayah.ts               # client fetch ke /api/wilayah/*
-│   │   └── wilayah-server.ts        # server fetch ke emsifa + cache
+│   │   └── utils.ts                 # formatTanggal, complianceRate, delta, cn
 │   ├── components/
 │   │   ├── ui.tsx                   # Button, Input, Select, Card, Badge, Label, dst.
 │   │   ├── AppShell.tsx             # bottom nav (mobile) / sidebar (desktop) — "NUTRIMO"
-│   │   ├── BalitaForm.tsx           # form Tambah Balita (identitas+kontak+wilayah+riwayat)
+│   │   ├── BalitaForm.tsx           # form Tambah Balita (6 field, memakai BalitaFields)
 │   │   ├── BalitaStatusForm.tsx
 │   │   ├── CatatanHarianForm.tsx    # input harian (hari ke-2 dst.)
 │   │   ├── OnboardingForm.tsx       # input hari-1 gabungan (harian + Baseline)
 │   │   ├── HasilLabForm.tsx         # 1 tipe lab per render (dikunci ke hari yg sesuai)
 │   │   ├── KaderForm.tsx / KaderRow.tsx / KaderEditForm.tsx / KaderDeleteButton.tsx
-│   │   ├── WilayahSelect.tsx        # dropdown berjenjang Prov→Kab/Kota→Kec→Desa
+│   │   ├── BalitaFields.tsx         # 6 field form balita (dipakai Tambah & Edit)
+│   │   ├── BalitaEditForm.tsx       # form Edit Profil balita (admin)
 │   │   ├── TrendChart.tsx
 │   │   ├── LoginForm.tsx
 │   │   └── icons.tsx
 │   ├── proxy.ts                     # role guard (dulu middleware.ts di Next <16)
 │   └── types/next-auth.d.ts         # augmentasi type session.user (id, role, username)
+├── server.js                         # entry point produksi (cPanel/Passenger)
 ├── .env                              # DATABASE_URL, NEXTAUTH_SECRET
 ├── .gitignore
 └── package.json                      # "name": "nutrimo" (cosmetic, tidak wajib reinstall)
@@ -195,45 +192,32 @@ graph LR
     G --> I[Redirect ke halaman detail balita]
 ```
 
-## 7. Fitur Baru: Dropdown Wilayah Administratif (berjenjang)
+## 7. Fitur Dihapus: Dropdown Wilayah Administratif
 
-Form Tambah Balita punya dropdown Provinsi → Kab/Kota → Kecamatan → Desa/Kel yang saling
-mengunci (pilih level di atas dulu, baru level bawahnya terisi). Sumber data: API statis publik
-[`emsifa/api-wilayah-indonesia`](https://github.com/emsifa/api-wilayah-indonesia) (hosted di
-GitHub Pages).
+Dropdown Provinsi → Kab/Kota → Kecamatan → Desa/Kel (proxy `/api/wilayah/**` ke
+`emsifa/api-wilayah-indonesia`) **dihapus pada 18 Okt 2026** karena form balita disederhanakan
+dan field wilayah tidak diinput lagi. File yang dihapus: `WilayahSelect.tsx`, `lib/wilayah.ts`,
+`lib/wilayah-server.ts`, dan seluruh `src/app/api/wilayah/`. Kolom wilayah di tabel `Balita`
+tetap ada untuk data lama.
 
-**Kendala & solusi:** GitHub Pages tidak mengirim header `Access-Control-Allow-Origin`, jadi
-fetch **langsung dari browser** ke `emsifa.github.io` diblokir CORS. Solusinya: browser fetch ke
-route internal `/api/wilayah/**` (`src/app/api/wilayah/`), yang lalu fetch ke emsifa **dari sisi
-server** (`src/lib/wilayah-server.ts`) — server-to-server tidak kena aturan CORS.
+## 8. Deployment Produksi (server sendiri, bukan Vercel)
 
-```mermaid
-graph LR
-    A[Browser: WilayahSelect.tsx] -->|fetch same-origin| B["/api/wilayah/provinces\n/api/wilayah/regencies/:id\n/api/wilayah/districts/:id\n/api/wilayah/villages/:id"]
-    B -->|fetch server-to-server, tidak kena CORS| C[emsifa.github.io]
-    B -->|cache in-memory 1x proses + Cache-Control browser| B
-```
-
-Server juga men-cache hasil di memori proses (tidak pernah kadaluwarsa selama server hidup —
-data wilayah administratif praktis tidak berubah) dan mengirim `Cache-Control` supaya browser
-ikut cache. Ada timeout 6 detik: kalau emsifa lambat/tidak respons, `WilayahSelect` otomatis
-fallback ke isian teks manual supaya form tidak macet.
-
-## 8. Migrasi ke Production (kalau nanti perlu deploy, saat ini di luar scope)
-
-1. **Database**: provision PostgreSQL (Neon/Supabase), ganti `datasource db { provider = "sqlite" }`
-   jadi `"postgresql"`, dan field `String` yang sebelumnya mewakili enum bisa (opsional) diganti
-   balik jadi `enum` Prisma asli.
-2. **Migration**: `npx prisma migrate deploy` (bukan `db push` yang sekarang dipakai untuk SQLite lokal).
-3. **App**: push ke GitHub → connect Vercel → set env vars (`DATABASE_URL`, `NEXTAUTH_SECRET`, `NEXTAUTH_URL`).
-4. Tidak perlu ubah apapun terkait fetch wilayah — proxy server-side (`/api/wilayah/**`) tetap
-   berfungsi sama di production.
+- **Hosting:** server cPanel (Setup Node.js App / Passenger). Entry point `server.js`, yang juga
+  memuat penyesuaian khusus server (batas thread/CPU affinity).
+- **Database:** PostgreSQL, memakai `prisma/schema.production.prisma`. Build:
+  `npm run build:prod` (generate client produksi + `next build`). Perubahan schema:
+  `npm run db:push:prod` atau SQL manual.
+- **Update 18 Okt 2026 (form balita ringkas):** jalankan SQL di
+  `migration-posyandu-nullable.sql` (`ALTER TABLE "Balita" ALTER COLUMN "posyandu" DROP NOT NULL;`)
+  **sebelum** menjalankan versi kode baru, lalu build ulang, upload, dan restart Node.js App.
+  Data balita lama tidak berubah. Urutan ini penting: kode baru tidak lagi mengirim `posyandu`,
+  sehingga insert gagal kalau kolom masih `NOT NULL`.
+- **Dev lokal:** SQLite (`prisma/dev.db`), `npm run dev`, `npm run db:push`.
 
 ## 9. Non-Functional Considerations
 
 - **Mobile-first**: `AppShell` pakai bottom nav di mobile (`md:hidden`), sidebar di desktop
   (`hidden md:flex`) — sesuai permintaan awal "utamakan tampilan mobile, bertahap sampai desktop".
-- **Offline resilience**: masih di luar scope untuk data harian/lab. Untuk dropdown wilayah,
-  sudah ada fallback manual kalau koneksi ke emsifa gagal (lihat §7).
-- **Backup data**: karena SQLite lokal (`prisma/dev.db`), backup = copy file itu secara berkala —
-  belum ada mekanisme otomatis.
+- **Offline resilience**: masih di luar scope untuk data harian/lab.
+- **Backup data**: dev lokal = copy `prisma/dev.db`. Produksi = dump PostgreSQL (`pg_dump`) sebelum
+  setiap perubahan schema; belum ada mekanisme otomatis.

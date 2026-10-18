@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { updateBalita } from "@/actions/balita.actions";
 import { Button, FieldError } from "@/components/ui";
-import { BalitaFields, type BalitaDefaults, type RiwayatDefaults } from "@/components/BalitaFields";
+import { BalitaFields, type BalitaDefaults } from "@/components/BalitaFields";
 
 // Form edit profil balita (khusus SPV Kader/Admin). Tombol "Edit Profil" membuka form
 // berisi data yang sudah tersimpan; setelah disimpan halaman detail di-refresh.
@@ -12,12 +12,10 @@ export function BalitaEditForm({
   balitaId,
   kaderList,
   defaults,
-  riwayat,
 }: {
   balitaId: string;
   kaderList: { id: string; nama: string }[];
   defaults: BalitaDefaults;
-  riwayat: RiwayatDefaults | null;
 }) {
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -49,7 +47,7 @@ export function BalitaEditForm({
     >
       <p className="font-medium text-slate-900">Edit Profil Balita</p>
 
-      <BalitaFields kaderList={kaderList} defaults={defaults} riwayat={riwayat} editMode />
+      <BalitaFields kaderList={kaderList} defaults={defaults} />
 
       <FieldError>{error ?? undefined}</FieldError>
       <div className="flex gap-2">

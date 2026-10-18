@@ -37,9 +37,3 @@ export const BERAT_BADAN_MIN_WAJAR = 3;
 export const BERAT_BADAN_MAX_WAJAR = 30;
 export const HB_MIN_WAJAR = 7;
 export const HB_MAX_WAJAR = 16;
-
-// Opsi untuk data riwayat pemeriksaan sebelum proyek (dari catatan posyandu lama)
-export const CARA_UKUR = ["Berdiri", "Telentang"] as const;
-export const KATEGORI_GIZI = ["Gizi Buruk", "Gizi Kurang", "Gizi Baik", "Gizi Lebih"] as const;
-export const KATEGORI_TB_U = ["Sangat Pendek", "Pendek", "Normal", "Tinggi"] as const;
-export const HASIL_KPSP = ["Sesuai", "Meragukan", "Penyimpangan"] as const;

@@ -73,7 +73,7 @@ export default async function KaderBalitaDetailPage(
         <div>
           <h1 className="text-xl font-semibold text-slate-900">{balita.nama}</h1>
           <p className="text-sm text-slate-500">
-            {balita.posyandu} · {balita.usiaBulan} bln · {balita.jenisKelamin === "L" ? "Laki-laki" : "Perempuan"}
+            {balita.posyandu ? `${balita.posyandu} · ` : ""}{balita.usiaBulan} bln · {balita.jenisKelamin === "L" ? "Laki-laki" : "Perempuan"}
           </p>
         </div>
         <StatusBadge status={balita.status} />

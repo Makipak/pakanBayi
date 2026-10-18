@@ -5,8 +5,12 @@
 > semua `enum` diimplementasikan sebagai `String` yang divalidasi di `src/lib/validators.ts`;
 > ada tabel baru `RiwayatPemeriksaanAwal`; `Balita` punya banyak field identitas/kontak/wilayah
 > tambahan; `CatatanHarian` menambah `tinggiBadan` + 3 makronutrien; `HasilLab` menambah `feValue`
-> dan tipe ketiga `PERTENGAHAN`. Proyek ini sekarang bernama **NUTRIMO** (rebrand tampilan saja —
+> dan tipe ketiga `PERTENGAHAN`. Produksi memakai PostgreSQL (`prisma/schema.production.prisma`, enum asli) — lihat `architecture.md` §8. Proyek ini sekarang bernama **NUTRIMO** (rebrand tampilan saja —
 > nama tabel/model di skema tidak berubah).
+
+> **Update 18 Okt 2026 — form input balita disederhanakan:** hanya 6 field (nama, usia, jenis kelamin,
+> tinggi badan, berat badan, kader penanggung jawab). Field kontak, wilayah, posyandu, dan riwayat
+> pemeriksaan sudah tidak diisi lagi; data lama tetap tersimpan dan tampil read-only.
 
 ## 1. Entity Relationship Diagram
 
@@ -44,7 +48,7 @@ erDiagram
         string kecamatan "nullable"
         string puskesmas "nullable"
         string desaKelurahan "nullable"
-        string posyandu
+        string posyandu "nullable, legacy - tidak diisi form"
         string rt "nullable"
         string rw "nullable"
         string kaderId FK
@@ -127,8 +131,12 @@ sebelumnya hanya add/delete).
 
 ## 3. Tabel: `Balita`
 
-Profil balita, di-assign ke satu kader. Jauh lebih lengkap dari draft awal — field identitas,
-kontak, dan wilayah administratif ditambahkan supaya data setara dengan catatan posyandu manual.
+Profil balita, di-assign ke satu kader. Sejak 18 Okt 2026 form Tambah/Edit hanya mengisi `nama`,
+`usiaBulan`, `jenisKelamin`, `tinggiBadanAwal`, `beratBadanAwal`, dan `kaderId`. Kolom identitas,
+kontak, dan wilayah di bawah (`tanggalLahir`, `namaIbu`, `alamat`, `noTelp`, `provinsi`,
+`kabupatenKota`, `kecamatan`, `puskesmas`, `desaKelurahan`, `posyandu`, `rt`, `rw`) **tidak dihapus
+dari database** — datanya dipertahankan untuk balita lama dan hanya tampil read-only di halaman
+detail admin; balita baru akan bernilai `NULL`.
 
 | Field | Tipe | Constraint | Keterangan |
 |---|---|---|---|
@@ -142,12 +150,12 @@ kontak, dan wilayah administratif ditambahkan supaya data setara dengan catatan 
 | `namaIbu` | string, nullable | | Nama ibu kandung |
 | `alamat` | string, nullable | | |
 | `noTelp` | string, nullable | | |
-| `provinsi` | string, nullable | | Dipilih via dropdown wilayah (lihat `architecture.md` §7) |
+| `provinsi` | string, nullable | | Legacy — tidak diisi form lagi (dulu dropdown wilayah) |
 | `kabupatenKota` | string, nullable | | |
 | `kecamatan` | string, nullable | | |
-| `puskesmas` | string, nullable | | Isian teks manual (bukan dari API wilayah) |
+| `puskesmas` | string, nullable | | Legacy — tidak diisi form lagi |
 | `desaKelurahan` | string, nullable | | |
-| `posyandu` | string | not null | Isian teks manual |
+| `posyandu` | string, nullable | | **Legacy** — tidak diisi form lagi (sebelumnya wajib); data lama tetap tersimpan |
 | `rt` | string, nullable | | |
 | `rw` | string, nullable | | |
 | `kaderId` | string | FK → `User.id`, not null | Kader penanggung jawab |
@@ -157,18 +165,14 @@ kontak, dan wilayah administratif ditambahkan supaya data setara dengan catatan 
 
 **Index:** `kaderId`.
 
-Semua field baru di atas (kecuali `nama`, `usiaBulan`, `jenisKelamin`, `tinggiBadanAwal`,
-`beratBadanAwal`, `posyandu`, `kaderId`) **opsional** — form Tambah Balita tetap bisa disubmit
-walau field-field ini dikosongkan.
+Edit profil (`updateBalita`) **hanya menyentuh 6 field form** — kolom legacy tidak ikut
+di-update atau di-null-kan.
 
-## 4. Tabel: `RiwayatPemeriksaanAwal` (baru)
+## 4. Tabel: `RiwayatPemeriksaanAwal` (legacy — tidak diisi lagi dari form)
 
-Snapshot **satu kali** data pemeriksaan posyandu terakhir **sebelum** balita ikut studi 28 hari
-ini (bukan bagian dari studi — jangan disamakan dengan `HasilLab` tipe `BASELINE` atau
-`CatatanHarian` hari ke-1). Diisi manual oleh Admin saat registrasi balita, lewat bagian
-collapsible "Riwayat Pemeriksaan Sebelum Proyek Ini" di form Tambah Balita. Relasi 1:1 dengan
-`Balita` — baris ini **hanya dibuat kalau minimal satu field-nya diisi**; kalau tidak ada sama
-sekali yang diisi, tidak ada baris yang dibuat.
+Snapshot **satu kali** data pemeriksaan posyandu terakhir sebelum balita ikut studi 28 hari.
+Sejak 18 Okt 2026 form untuk mengisinya **sudah dihapus**; tabel dipertahankan supaya data balita
+lama tidak hilang (tampil read-only di detail admin). Relasi 1:1 dengan `Balita`, `onDelete: Cascade`.
 
 | Field | Tipe | Keterangan |
 |---|---|---|
@@ -194,10 +198,6 @@ sekali yang diisi, tidak ada baris yang dibuat.
 | `mbg` | boolean, nullable | Terdaftar program Makan Bergizi Gratis |
 | `detail` | string, nullable | Catatan bebas |
 | `createdAt` | datetime | default now |
-
-> Set nilai kategori (`caraUkur`, `bbU`/`bbTb`, `tbU`, `kpsp`) adalah **asumsi** saat fitur ini
-> dibuat — kalau istilah yang dipakai posyandu di lapangan berbeda, tinggal disesuaikan di
-> `CARA_UKUR`/`KATEGORI_GIZI`/`KATEGORI_TB_U`/`HASIL_KPSP` (`src/lib/constants.ts`).
 
 ## 5. Tabel: `CatatanHarian`
 
@@ -301,7 +301,7 @@ model Balita {
   kecamatan     String?
   puskesmas     String?
   desaKelurahan String?
-  posyandu      String
+  posyandu      String? // legacy, tidak diisi form
   rt            String?
   rw            String?
 

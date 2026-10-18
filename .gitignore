@@ -43,3 +43,6 @@ coverage
 .idea
 .DS_Store
 Thumbs.db
+
+# File deploy hasil build/upload (ratusan MB, jangan di-commit)
+*.tar.gz

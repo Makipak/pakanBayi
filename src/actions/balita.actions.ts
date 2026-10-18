@@ -4,11 +4,7 @@ import { revalidatePath } from "next/cache";
 import bcrypt from "bcryptjs";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import {
-  balitaSchema,
-  balitaStatusSchema,
-  riwayatPemeriksaanSchema,
-} from "@/lib/validators";
+import { balitaSchema, balitaStatusSchema } from "@/lib/validators";
 import { DURASI_STUDI_HARI } from "@/lib/constants";
 
 async function requireAdmin() {
@@ -21,86 +17,26 @@ async function requireAdmin() {
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
 
-// Field opsional (alamat, riwayat pemeriksaan, checkbox, dll) yang tidak dirender
-// di DOM (mis. section "Riwayat Pemeriksaan" belum dibuka) atau checkbox yang tidak
-// dicentang, sama sekali TIDAK MUNCUL sebagai key di FormData — bukan cuma bernilai
-// kosong. Zod v4 memperlakukan key yang benar-benar hilang dari objek sebagai error
-// "expected nonoptional" walau schema-nya sudah `.optional()`, begitu field itu
-// dibungkus `.transform()`/`.refine()` lagi setelahnya. Jadi kita isi default ""
-// dulu sebelum divalidasi supaya key-nya selalu ada.
-const BALITA_OPTIONAL_KEYS = [
-  "tanggalLahir",
-  "namaIbu",
-  "alamat",
-  "noTelp",
-  "provinsi",
-  "kabupatenKota",
-  "kecamatan",
-  "puskesmas",
-  "desaKelurahan",
-  "rt",
-  "rw",
-] as const;
-
-const RIWAYAT_KEYS = [
-  "usiaSaatUkurBulan",
-  "tanggalPengukuran",
-  "berat",
-  "tinggi",
-  "caraUkur",
-  "lila",
-  "bbU",
-  "zsBbU",
-  "tbU",
-  "zsTbU",
-  "bbTb",
-  "zsBbTb",
-  "naikBeratBadan",
-  "jmlVitA",
-  "kpsp",
-  "kia",
-  "kelasIbuBalita",
-  "mbg",
-  "detail",
-] as const;
-
-function withDefaultKeys(
-  raw: Record<string, FormDataEntryValue>,
-  keys: readonly string[]
-): Record<string, FormDataEntryValue> {
-  const out = { ...raw };
-  for (const key of keys) {
-    if (!(key in out)) out[key] = "";
-  }
-  return out;
+async function requireKaderValid(kaderId: string): Promise<boolean> {
+  const kader = await prisma.user.findFirst({
+    where: { id: kaderId, role: "KADER" },
+    select: { id: true },
+  });
+  return !!kader;
 }
 
 export async function createBalita(formData: FormData): Promise<ActionResult> {
   try {
     await requireAdmin();
-    const raw = Object.fromEntries(formData.entries());
-    const normalized = withDefaultKeys(withDefaultKeys(raw, BALITA_OPTIONAL_KEYS), RIWAYAT_KEYS);
-
-    const parsed = balitaSchema.safeParse(normalized);
+    const parsed = balitaSchema.safeParse(Object.fromEntries(formData.entries()));
     if (!parsed.success) {
       return { ok: false, error: parsed.error.issues[0]?.message ?? "Data tidak valid" };
     }
     const data = parsed.data;
 
-    const riwayatParsed = riwayatPemeriksaanSchema.safeParse(normalized);
-    if (!riwayatParsed.success) {
-      return {
-        ok: false,
-        error: riwayatParsed.error.issues[0]?.message ?? "Data riwayat pemeriksaan tidak valid",
-      };
+    if (!(await requireKaderValid(data.kaderId))) {
+      return { ok: false, error: "Kader penanggung jawab tidak valid" };
     }
-    const riwayat = riwayatParsed.data;
-    // "Ada isi riwayat?" dicek dari FormData ASLI (sebelum di-default ke ""), supaya
-    // section yang tidak pernah dibuka user tidak ikut membuat baris riwayat kosong.
-    const adaRiwayat = RIWAYAT_KEYS.some((key) => {
-      const value = raw[key];
-      return typeof value === "string" && value.trim().length > 0;
-    });
 
     const balita = await prisma.balita.create({
       data: {
@@ -109,51 +45,10 @@ export async function createBalita(formData: FormData): Promise<ActionResult> {
         jenisKelamin: data.jenisKelamin,
         tinggiBadanAwal: data.tinggiBadanAwal,
         beratBadanAwal: data.beratBadanAwal,
-        posyandu: data.posyandu,
         kaderId: data.kaderId,
         status: "AKTIF",
-        tanggalLahir: data.tanggalLahir ? new Date(data.tanggalLahir) : undefined,
-        namaIbu: data.namaIbu,
-        alamat: data.alamat,
-        noTelp: data.noTelp,
-        provinsi: data.provinsi,
-        kabupatenKota: data.kabupatenKota,
-        kecamatan: data.kecamatan,
-        puskesmas: data.puskesmas,
-        desaKelurahan: data.desaKelurahan,
-        rt: data.rt,
-        rw: data.rw,
       },
     });
-
-    if (adaRiwayat) {
-      await prisma.riwayatPemeriksaanAwal.create({
-        data: {
-          balitaId: balita.id,
-          usiaSaatUkurBulan: riwayat.usiaSaatUkurBulan,
-          tanggalPengukuran: riwayat.tanggalPengukuran
-            ? new Date(riwayat.tanggalPengukuran)
-            : undefined,
-          berat: riwayat.berat,
-          tinggi: riwayat.tinggi,
-          caraUkur: riwayat.caraUkur,
-          lila: riwayat.lila,
-          bbU: riwayat.bbU,
-          zsBbU: riwayat.zsBbU,
-          tbU: riwayat.tbU,
-          zsTbU: riwayat.zsTbU,
-          bbTb: riwayat.bbTb,
-          zsBbTb: riwayat.zsBbTb,
-          naikBeratBadan: riwayat.naikBeratBadan,
-          jmlVitA: riwayat.jmlVitA,
-          kpsp: riwayat.kpsp,
-          kia: riwayat.kia,
-          kelasIbuBalita: riwayat.kelasIbuBalita,
-          mbg: riwayat.mbg,
-          detail: riwayat.detail,
-        },
-      });
-    }
 
     // Generate 28 baris CatatanHarian kosong — lihat rule.md §3
     const mulai = balita.tanggalMulai;
@@ -180,38 +75,24 @@ export async function createBalita(formData: FormData): Promise<ActionResult> {
 export async function updateBalita(balitaId: string, formData: FormData): Promise<ActionResult> {
   try {
     await requireAdmin();
-    const raw = Object.fromEntries(formData.entries());
-    const normalized = withDefaultKeys(withDefaultKeys(raw, BALITA_OPTIONAL_KEYS), RIWAYAT_KEYS);
-
-    const parsed = balitaSchema.safeParse(normalized);
+    const parsed = balitaSchema.safeParse(Object.fromEntries(formData.entries()));
     if (!parsed.success) {
       return { ok: false, error: parsed.error.issues[0]?.message ?? "Data tidak valid" };
     }
     const data = parsed.data;
 
-    const riwayatParsed = riwayatPemeriksaanSchema.safeParse(normalized);
-    if (!riwayatParsed.success) {
-      return {
-        ok: false,
-        error: riwayatParsed.error.issues[0]?.message ?? "Data riwayat pemeriksaan tidak valid",
-      };
-    }
-    const riwayat = riwayatParsed.data;
-
     const existing = await prisma.balita.findUnique({
       where: { id: balitaId },
-      select: { id: true, kaderId: true },
+      select: { id: true },
     });
     if (!existing) return { ok: false, error: "Balita tidak ditemukan" };
 
-    const kader = await prisma.user.findFirst({
-      where: { id: data.kaderId, role: "KADER" },
-      select: { id: true },
-    });
-    if (!kader) return { ok: false, error: "Kader penanggung jawab tidak valid" };
+    if (!(await requireKaderValid(data.kaderId))) {
+      return { ok: false, error: "Kader penanggung jawab tidak valid" };
+    }
 
-    // Beda dengan create: di edit, field opsional yang dikosongkan HARUS menghapus nilai
-    // lama (null), bukan di-skip — makanya pakai `?? null`, bukan undefined.
+    // Hanya 6 field form yang disentuh. Data lama (kontak, wilayah, posyandu, riwayat
+    // pemeriksaan) sengaja TIDAK di-update/dihapus supaya tidak hilang.
     await prisma.balita.update({
       where: { id: balitaId },
       data: {
@@ -220,58 +101,9 @@ export async function updateBalita(balitaId: string, formData: FormData): Promis
         jenisKelamin: data.jenisKelamin,
         tinggiBadanAwal: data.tinggiBadanAwal,
         beratBadanAwal: data.beratBadanAwal,
-        posyandu: data.posyandu,
         kaderId: data.kaderId,
-        tanggalLahir: data.tanggalLahir ? new Date(data.tanggalLahir) : null,
-        namaIbu: data.namaIbu ?? null,
-        alamat: data.alamat ?? null,
-        noTelp: data.noTelp ?? null,
-        provinsi: data.provinsi ?? null,
-        kabupatenKota: data.kabupatenKota ?? null,
-        kecamatan: data.kecamatan ?? null,
-        puskesmas: data.puskesmas ?? null,
-        desaKelurahan: data.desaKelurahan ?? null,
-        rt: data.rt ?? null,
-        rw: data.rw ?? null,
       },
     });
-
-    const adaRiwayat = RIWAYAT_KEYS.some((key) => {
-      const value = raw[key];
-      return typeof value === "string" && value.trim().length > 0;
-    });
-
-    if (adaRiwayat) {
-      const riwayatData = {
-        usiaSaatUkurBulan: riwayat.usiaSaatUkurBulan ?? null,
-        tanggalPengukuran: riwayat.tanggalPengukuran ? new Date(riwayat.tanggalPengukuran) : null,
-        berat: riwayat.berat ?? null,
-        tinggi: riwayat.tinggi ?? null,
-        caraUkur: riwayat.caraUkur ?? null,
-        lila: riwayat.lila ?? null,
-        bbU: riwayat.bbU ?? null,
-        zsBbU: riwayat.zsBbU ?? null,
-        tbU: riwayat.tbU ?? null,
-        zsTbU: riwayat.zsTbU ?? null,
-        bbTb: riwayat.bbTb ?? null,
-        zsBbTb: riwayat.zsBbTb ?? null,
-        naikBeratBadan: riwayat.naikBeratBadan ?? null,
-        jmlVitA: riwayat.jmlVitA ?? null,
-        kpsp: riwayat.kpsp ?? null,
-        kia: riwayat.kia ?? null,
-        kelasIbuBalita: riwayat.kelasIbuBalita ?? null,
-        mbg: riwayat.mbg ?? null,
-        detail: riwayat.detail ?? null,
-      };
-      await prisma.riwayatPemeriksaanAwal.upsert({
-        where: { balitaId },
-        create: { balitaId, ...riwayatData },
-        update: riwayatData,
-      });
-    } else {
-      // Semua isian riwayat dikosongkan → hapus baris riwayat (kalau ada).
-      await prisma.riwayatPemeriksaanAwal.deleteMany({ where: { balitaId } });
-    }
 
     revalidatePath("/admin/balita");
     revalidatePath(`/admin/balita/${balitaId}`);

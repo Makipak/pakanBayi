@@ -76,7 +76,7 @@ export default async function AdminBalitaPage() {
                               <div className="flex items-start justify-between gap-2">
                                 <div>
                                   <p className="font-medium text-slate-900">{b.nama}</p>
-                                  <p className="text-xs text-slate-500">{b.posyandu}</p>
+                                  <p className="text-xs text-slate-500">{b.posyandu ?? `${b.usiaBulan} bln`}</p>
                                 </div>
                                 <StatusBadge status={b.status} />
                               </div>
