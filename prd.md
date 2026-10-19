@@ -53,7 +53,7 @@ akun kader (edit ditambahkan setelah rencana v1 — sebelumnya cuma tambah/hapus
 - Autentikasi & role-based access (Admin/"SPV Kader", Kader)
 - CRUD data balita oleh Admin, assign ke Kader. Data yang diinput: nama, usia (bulan), jenis
   kelamin, tinggi badan awal, berat badan awal, dan kader penanggung jawab (lihat §5)
-- CRUD akun kader oleh Admin (tambah, **edit**, hapus)
+- CRUD akun kader oleh Admin (tambah, **edit**, hapus). Form hanya berisi username & password (tanpa nama lengkap)
 - Input harian oleh Kader: berat badan, tinggi badan, konsumsi nugget (gram), dan asupan
   karbohidrat/protein/lemak (gram)
 - **Onboarding Hari ke-1**: input harian pertama + Hasil Lab Baseline digabung jadi satu form/satu

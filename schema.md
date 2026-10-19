@@ -123,7 +123,7 @@ tetap `ADMIN`, tidak ada perubahan skema untuk ini).
 | `username` | string | unique, not null | Login identifier, mis. `kader1` |
 | `passwordHash` | string | not null | Hash bcrypt |
 | `role` | string (`ADMIN`, `KADER`) | not null | Divalidasi via `ROLES` di `constants.ts`, bukan Prisma enum (SQLite tidak dukung) |
-| `nama` | string | not null | Nama lengkap kader/peneliti |
+| `nama` | string | not null | Label tampilan. Akun kader yang dibuat sejak 19 Okt 2026 otomatis diisi sama dengan `username` (form hanya meminta username & password); akun lama tetap memakai nama lengkapnya |
 | `createdAt` | datetime | default now | |
 
 Admin bisa **Tambah**, **Update**, dan **Hapus** akun kader (update ditambahkan setelah v1 —

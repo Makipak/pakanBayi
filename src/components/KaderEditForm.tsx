@@ -7,12 +7,10 @@ import { Button, FieldError, Input, Label } from "@/components/ui";
 
 export function KaderEditForm({
   kaderId,
-  defaultNama,
   defaultUsername,
   onDone,
 }: {
   kaderId: string;
-  defaultNama: string;
   defaultUsername: string;
   onDone: () => void;
 }) {
@@ -36,10 +34,6 @@ export function KaderEditForm({
       className="w-full space-y-3 rounded-xl border border-slate-200 bg-white p-4"
     >
       <p className="font-medium text-slate-900">Edit Akun Kader</p>
-      <div>
-        <Label htmlFor={`nama-${kaderId}`}>Nama lengkap</Label>
-        <Input id={`nama-${kaderId}`} name="nama" defaultValue={defaultNama} required />
-      </div>
       <div>
         <Label htmlFor={`username-${kaderId}`}>Username</Label>
         <Input id={`username-${kaderId}`} name="username" defaultValue={defaultUsername} required />

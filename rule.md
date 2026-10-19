@@ -21,7 +21,7 @@
 | Input `HasilLab` (Baseline/Pertengahan/Endline) | ✅ (semua balita) | ✅ (hanya balita miliknya) — **dikunci ke hari yang sesuai, lihat §7** |
 | Isi form onboarding hari-1 (`submitHariPertama`) | ✅ | ✅ (hanya balita miliknya) |
 | Tambah akun kader | ✅ | ❌ |
-| **Update akun kader** (username/nama/password) | ✅ | ❌ |
+| **Update akun kader** (username/password) | ✅ | ❌ |
 | Hapus akun kader (kalau tidak ada balita aktif) | ✅ | ❌ |
 | Export data (CSV) | ✅ | ❌ |
 | Lihat dashboard agregat (semua balita) | ✅ | ❌ (hanya agregat balita miliknya) |
@@ -118,8 +118,12 @@ muncul di form input aktif, tapi tetap muncul di export dengan penanda status.
 ## 10. Aturan Akun
 
 - Akun kader dibuat oleh Admin, bukan self-register.
-- **Update ditambahkan** (sebelumnya hanya Tambah/Hapus): Admin bisa update `username`, `nama`,
-  dan opsional ganti `password` (kosongkan field password di form edit kalau tidak mau ganti).
+- **Form akun kader hanya berisi `username` dan `password`** (sejak 19 Okt 2026, tanpa nama lengkap).
+  Kolom `nama` di DB tetap wajib, jadi otomatis diisi sama dengan `username` agar label di dropdown
+  kader dan export tetap terisi. Akun lama tetap memakai nama lengkapnya.
+- **Update ditambahkan** (sebelumnya hanya Tambah/Hapus): Admin bisa update `username` dan opsional
+  ganti `password` (kosongkan field password di form edit kalau tidak mau ganti). Jika `nama` masih
+  sama dengan username lama, ikut diperbarui.
 - Kader tidak bisa dihapus kalau masih menangani balita aktif — harus dipindah ke kader lain dulu
   (dicek di `deleteKader`).
 - Satu kader = satu akun, tidak ada shared account.

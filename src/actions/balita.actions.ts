@@ -157,11 +157,9 @@ export async function createKader(formData: FormData): Promise<ActionResult> {
     await requireAdmin();
     const raw = Object.fromEntries(formData.entries());
     const username = String(raw.username ?? "").trim();
-    const nama = String(raw.nama ?? "").trim();
     const password = String(raw.password ?? "");
 
     if (username.length < 3) return { ok: false, error: "Username minimal 3 karakter" };
-    if (!nama) return { ok: false, error: "Nama wajib diisi" };
     if (password.length < 6) return { ok: false, error: "Password minimal 6 karakter" };
 
     const existing = await prisma.user.findUnique({ where: { username } });
@@ -170,7 +168,9 @@ export async function createKader(formData: FormData): Promise<ActionResult> {
     await prisma.user.create({
       data: {
         username,
-        nama,
+        // Kolom `nama` di DB wajib diisi & dipakai sebagai label di dropdown/export,
+        // jadi akun baru memakai username sebagai nama tampilan (tanpa input nama lengkap).
+        nama: username,
         passwordHash: await bcrypt.hash(password, 10),
         role: "KADER",
       },
@@ -187,11 +187,9 @@ export async function updateKader(kaderId: string, formData: FormData): Promise<
     await requireAdmin();
     const raw = Object.fromEntries(formData.entries());
     const username = String(raw.username ?? "").trim();
-    const nama = String(raw.nama ?? "").trim();
     const password = String(raw.password ?? "");
 
     if (username.length < 3) return { ok: false, error: "Username minimal 3 karakter" };
-    if (!nama) return { ok: false, error: "Nama wajib diisi" };
     if (password.length > 0 && password.length < 6) {
       return { ok: false, error: "Password minimal 6 karakter (kosongkan jika tidak diganti)" };
     }
@@ -200,12 +198,19 @@ export async function updateKader(kaderId: string, formData: FormData): Promise<
     if (existing && existing.id !== kaderId) {
       return { ok: false, error: "Username sudah dipakai kader lain" };
     }
+    // Akun yang namanya masih sama dengan username lama ikut diperbarui; nama lengkap
+    // lama (akun sebelum perubahan ini) dibiarkan apa adanya.
+    const current = await prisma.user.findUnique({
+      where: { id: kaderId },
+      select: { username: true, nama: true },
+    });
+    const ikutUsername = current !== null && current.nama === current.username;
 
     await prisma.user.update({
       where: { id: kaderId },
       data: {
         username,
-        nama,
+        ...(ikutUsername ? { nama: username } : {}),
         ...(password.length > 0 ? { passwordHash: await bcrypt.hash(password, 10) } : {}),
       },
     });

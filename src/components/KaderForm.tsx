@@ -36,10 +36,6 @@ export function KaderForm() {
     >
       <p className="font-medium text-slate-900">Tambah Akun Kader</p>
       <div>
-        <Label htmlFor="nama">Nama lengkap</Label>
-        <Input id="nama" name="nama" required />
-      </div>
-      <div>
         <Label htmlFor="username">Username</Label>
         <Input id="username" name="username" required />
       </div>

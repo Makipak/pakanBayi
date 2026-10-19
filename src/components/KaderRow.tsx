@@ -22,7 +22,6 @@ export function KaderRow({
     return (
       <KaderEditForm
         kaderId={kaderId}
-        defaultNama={nama}
         defaultUsername={username}
         onDone={() => setEditing(false)}
       />
@@ -34,7 +33,8 @@ export function KaderRow({
       <div>
         <p className="font-medium text-slate-900">{nama}</p>
         <p className="text-xs text-slate-500">
-          @{username} · {jumlahBalita} balita ditangani
+          {nama !== username ? `@${username} · ` : ""}
+          {jumlahBalita} balita ditangani
         </p>
       </div>
       <div className="flex items-center gap-2">
