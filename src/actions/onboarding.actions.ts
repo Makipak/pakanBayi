@@ -11,9 +11,10 @@ import {
   HB_MIN_WAJAR,
   TARGET_NUGGET_GRAM,
 } from "@/lib/constants";
+import { gramOpsional } from "@/lib/validators";
 import type { ActionResult } from "./balita.actions";
 
-// Hari ke-1: input harian (berat/tinggi/nugget/makro) DIGABUNG dengan hasil lab
+// Hari ke-1: input harian (berat/tinggi/nugget; makro opsional) DIGABUNG dengan hasil lab
 // Baseline dalam satu form/satu submit — supaya kader tidak perlu bolak-balik
 // halaman untuk onboarding balita baru. Setelah ini tersimpan, halaman detail
 // balita otomatis pindah ke tampilan dashboard biasa (lihat halaman detail).
@@ -27,9 +28,9 @@ const hariPertamaSchema = z.object({
     .number()
     .min(0, "Tidak boleh negatif")
     .max(TARGET_NUGGET_GRAM, `Maksimal ${TARGET_NUGGET_GRAM} gram`),
-  karbohidratGram: z.coerce.number().min(0, "Tidak boleh negatif"),
-  proteinGram: z.coerce.number().min(0, "Tidak boleh negatif"),
-  lemakGram: z.coerce.number().min(0, "Tidak boleh negatif"),
+  karbohidratGram: gramOpsional,
+  proteinGram: gramOpsional,
+  lemakGram: gramOpsional,
   confirmBeratOutOfRange: z.coerce.boolean().optional(),
 
   tanggalPengukuranLab: z.string().min(1, "Tanggal pengukuran lab wajib diisi"),
@@ -95,9 +96,9 @@ export async function submitHariPertama(
         tinggiBadan: data.tinggiBadan,
         beratBadan: data.beratBadan,
         konsumsiNuggetGram: data.konsumsiNuggetGram,
-        karbohidratGram: data.karbohidratGram,
-        proteinGram: data.proteinGram,
-        lemakGram: data.lemakGram,
+        karbohidratGram: data.karbohidratGram ?? null,
+        proteinGram: data.proteinGram ?? null,
+        lemakGram: data.lemakGram ?? null,
         statusInput: "TERISI",
         inputBy: session.user.id,
       },

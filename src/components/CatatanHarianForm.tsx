@@ -98,7 +98,7 @@ export function CatatanHarianForm({
       </div>
 
       <div>
-        <p className="mb-1 text-sm font-medium text-slate-700">Asupan makronutrien harian</p>
+        <p className="mb-1 text-sm font-medium text-slate-700">Asupan makronutrien harian (opsional)</p>
         <div className="grid grid-cols-3 gap-3">
           <div>
             <Label htmlFor="karbohidratGram">Karbohidrat (g)</Label>
@@ -108,7 +108,6 @@ export function CatatanHarianForm({
               type="number"
               step="0.1"
               min="0"
-              required
               defaultValue={defaultKarbohidrat ?? undefined}
               inputMode="decimal"
             />
@@ -121,7 +120,6 @@ export function CatatanHarianForm({
               type="number"
               step="0.1"
               min="0"
-              required
               defaultValue={defaultProtein ?? undefined}
               inputMode="decimal"
             />
@@ -134,7 +132,6 @@ export function CatatanHarianForm({
               type="number"
               step="0.1"
               min="0"
-              required
               defaultValue={defaultLemak ?? undefined}
               inputMode="decimal"
             />

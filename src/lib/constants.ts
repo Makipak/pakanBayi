@@ -13,22 +13,21 @@ export type StatusBalita = (typeof STATUS_BALITA)[number];
 export const STATUS_INPUT = ["TERISI", "TIDAK_TERISI"] as const;
 export type StatusInput = (typeof STATUS_INPUT)[number];
 
-export const TIPE_LAB = ["BASELINE", "PERTENGAHAN", "ENDLINE"] as const;
+export const TIPE_LAB = ["BASELINE", "ENDLINE"] as const;
 export type TipeLab = (typeof TIPE_LAB)[number];
 
-// Hasil lab Hb/Zinc/Fe diambil 3x: awal, pertengahan, akhir studi. Form input
+// Hasil lab Hb/Zinc/Fe diambil 2x: awal dan akhir studi (checkpoint "pertengahan" sudah
+// dihapus; nilai enum PERTENGAHAN di DB dibiarkan demi data lama, tidak dipakai lagi). Form input
 // masing-masing HANYA muncul pas hari studinya — supaya tidak ada yang kepencet/
 // keganti tidak sengaja di hari lain (lihat submitHasilLab yang juga menegakkan ini
 // di server, bukan cuma di UI).
 export const HARI_LAB: Record<TipeLab, number> = {
   BASELINE: 1,
-  PERTENGAHAN: Math.round(DURASI_STUDI_HARI / 2), // hari ke-14
   ENDLINE: DURASI_STUDI_HARI, // hari ke-28
 };
 
 export const LABEL_LAB: Record<TipeLab, string> = {
   BASELINE: "Baseline (Awal)",
-  PERTENGAHAN: "Pertengahan",
   ENDLINE: "Endline (Akhir)",
 };
 

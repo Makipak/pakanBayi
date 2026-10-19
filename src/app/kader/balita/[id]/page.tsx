@@ -45,7 +45,6 @@ export default async function KaderBalitaDetailPage(
   };
 
   const baseline = balita.hasilLab.find((h) => h.tipe === "BASELINE");
-  const pertengahan = balita.hasilLab.find((h) => h.tipe === "PERTENGAHAN");
   const endline = balita.hasilLab.find((h) => h.tipe === "ENDLINE");
 
   // Hari ke-1 (onboarding): input harian + Baseline digabung satu form (lihat
@@ -167,12 +166,8 @@ export default async function KaderBalitaDetailPage(
 
       <Card>
         <h2 className="mb-3 font-medium text-slate-900">Hasil Lab (Hb, Zinc &amp; Fe)</h2>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <LabSummary label={`${LABEL_LAB.BASELINE} (Hari-${HARI_LAB.BASELINE})`} data={baseline} />
-          <LabSummary
-            label={`${LABEL_LAB.PERTENGAHAN} (Hari-${HARI_LAB.PERTENGAHAN})`}
-            data={pertengahan}
-          />
           <LabSummary label={`${LABEL_LAB.ENDLINE} (Hari-${HARI_LAB.ENDLINE})`} data={endline} />
         </div>
         {balita.status === "AKTIF" && (
@@ -187,8 +182,7 @@ export default async function KaderBalitaDetailPage(
             ) : (
               <p className="text-xs text-slate-400">
                 Form input hasil lab otomatis terbuka pas Hari ke-{HARI_LAB.BASELINE} (
-                {LABEL_LAB.BASELINE}), Hari ke-{HARI_LAB.PERTENGAHAN} ({LABEL_LAB.PERTENGAHAN}), dan
-                Hari ke-{HARI_LAB.ENDLINE} ({LABEL_LAB.ENDLINE}) — supaya tidak ada yang tidak sengaja
+                {LABEL_LAB.BASELINE}) dan Hari ke-{HARI_LAB.ENDLINE} ({LABEL_LAB.ENDLINE}) — supaya tidak ada yang tidak sengaja
                 kepencet/keganti di hari lain.
               </p>
             )}

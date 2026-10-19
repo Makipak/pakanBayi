@@ -80,19 +80,19 @@ export function OnboardingForm({
           />
         </div>
         <div>
-          <p className="mb-1 text-sm font-medium text-slate-700">Asupan makronutrien harian</p>
+          <p className="mb-1 text-sm font-medium text-slate-700">Asupan makronutrien harian (opsional)</p>
           <div className="grid grid-cols-3 gap-3">
             <div>
               <Label htmlFor="karbohidratGram">Karbohidrat (g)</Label>
-              <Input id="karbohidratGram" name="karbohidratGram" type="number" step="0.1" min="0" required inputMode="decimal" />
+              <Input id="karbohidratGram" name="karbohidratGram" type="number" step="0.1" min="0" inputMode="decimal" />
             </div>
             <div>
               <Label htmlFor="proteinGram">Protein (g)</Label>
-              <Input id="proteinGram" name="proteinGram" type="number" step="0.1" min="0" required inputMode="decimal" />
+              <Input id="proteinGram" name="proteinGram" type="number" step="0.1" min="0" inputMode="decimal" />
             </div>
             <div>
               <Label htmlFor="lemakGram">Lemak (g)</Label>
-              <Input id="lemakGram" name="lemakGram" type="number" step="0.1" min="0" required inputMode="decimal" />
+              <Input id="lemakGram" name="lemakGram" type="number" step="0.1" min="0" inputMode="decimal" />
             </div>
           </div>
         </div>

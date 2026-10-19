@@ -1,5 +1,9 @@
 # Schema — NUTRIMO (Nuget Nutrition Monitoring)
 
+> **Update 19 Okt 2026:** hasil lab Hb/Zinc/Fe kini **2 checkpoint** (Baseline hari-1 & Endline hari-28);
+> checkpoint Pertengahan dihapus (nilai enum `PERTENGAHAN` tetap ada di DB untuk data lama, tidak dipakai).
+> Asupan makronutrien harian (karbohidrat/protein/lemak) kini **opsional**.
+
 > **Update:** dokumen ini mengikuti implementasi aktual (`prisma/schema.prisma`), bukan lagi
 > rencana awal. Perbedaan terbesar dari draft v1: database SQLite lokal (bukan Postgres) sehingga
 > semua `enum` diimplementasikan sebagai `String` yang divalidasi di `src/lib/validators.ts`;
@@ -213,7 +217,7 @@ Sekarang mencakup tinggi badan + 3 makronutrien harian, bukan cuma berat badan +
 | `tinggiBadan` | float, nullable | | cm. Null jika `statusInput = TIDAK_TERISI` |
 | `beratBadan` | float, nullable | | kg |
 | `konsumsiNuggetGram` | float, nullable | | Target 50gr (2 biji × 25gr) |
-| `karbohidratGram` | float, nullable | | gram, asupan harian |
+| `karbohidratGram` | float, nullable | | gram, asupan harian (opsional diisi) |
 | `proteinGram` | float, nullable | | gram, asupan harian |
 | `lemakGram` | float, nullable | | gram, asupan harian |
 | `statusInput` | string (`TERISI`, `TIDAK_TERISI`) | not null, default `TIDAK_TERISI` | Untuk compliance rate |
@@ -227,14 +231,14 @@ Sekarang mencakup tinggi badan + 3 makronutrien harian, bukan cuma berat badan +
 
 ## 6. Tabel: `HasilLab`
 
-Hasil Hb, Zinc, **dan Fe** (zat besi) — **3 baris per balita**: Baseline, Pertengahan, Endline
-(bukan 2 seperti draft awal — lihat `rule.md` §7 untuk aturan "kunci hari" per checkpoint).
+Hasil Hb, Zinc, **dan Fe** (zat besi) — **2 baris per balita**: Baseline dan Endline
+(checkpoint Pertengahan dihapus 19 Okt 2026 — lihat `rule.md` §7 untuk aturan "kunci hari" per checkpoint).
 
 | Field | Tipe | Constraint | Keterangan |
 |---|---|---|---|
 | `id` | string | PK | |
 | `balitaId` | string | FK → `Balita.id`, not null | |
-| `tipe` | string (`BASELINE`, `PERTENGAHAN`, `ENDLINE`) | not null | Hari-1, hari-14, hari-28 (lihat `HARI_LAB` di `constants.ts`) |
+| `tipe` | string (`BASELINE`, `ENDLINE`; enum DB masih memuat `PERTENGAHAN` untuk data lama) | not null | Hari-1 dan hari-28 (lihat `HARI_LAB` di `constants.ts`) |
 | `hbValue` | float | not null | g/dL |
 | `zincValue` | float | not null | µg/dL |
 | `feValue` | float | not null | µg/dL |

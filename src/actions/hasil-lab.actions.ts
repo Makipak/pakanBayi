@@ -29,7 +29,7 @@ export async function submitHasilLab(formData: FormData): Promise<ActionResult> 
       return { ok: false, error: "Anda tidak punya akses ke balita ini" };
     }
 
-    // Kunci hari: form hasil lab tiap tipe (baseline/pertengahan/endline) cuma boleh
+    // Kunci hari: form hasil lab tiap tipe (baseline/endline) cuma boleh
     // disimpan pas hari studi yang sesuai — supaya tidak ada yang tidak sengaja
     // kepencet/keganti di hari lain. Dicek di server, bukan cuma disembunyikan di UI.
     const hariIni = balita.catatanHarian.find((c) => isSameDay(new Date(c.tanggal), new Date()));

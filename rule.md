@@ -1,5 +1,9 @@
 # Rule — NUTRIMO (Nuget Nutrition Monitoring): Business Rules & Validasi
 
+> **Update 19 Okt 2026:** hasil lab Hb/Zinc/Fe kini **2 checkpoint** (Baseline hari-1 & Endline hari-28);
+> checkpoint Pertengahan dihapus (nilai enum `PERTENGAHAN` tetap ada di DB untuk data lama, tidak dipakai).
+> Asupan makronutrien harian (karbohidrat/protein/lemak) kini **opsional**.
+
 > **Update:** ditambahkan aturan "kunci hari" untuk hasil lab (3 checkpoint, bukan 2), aturan
 > onboarding hari-1, kader sekarang bisa di-update (bukan cuma add/delete), dan validasi field
 > baru di `Balita`/`RiwayatPemeriksaanAwal`. Proyek ini sekarang bernama **NUTRIMO**.
@@ -18,7 +22,7 @@
 | Hapus balita | ✅ | ❌ |
 | Input `CatatanHarian` (harian) | ✅ (semua balita) | ✅ (hanya balita miliknya) |
 | Edit `CatatanHarian` yang sudah diisi | ✅ | ✅ (hanya milik sendiri) |
-| Input `HasilLab` (Baseline/Pertengahan/Endline) | ✅ (semua balita) | ✅ (hanya balita miliknya) — **dikunci ke hari yang sesuai, lihat §7** |
+| Input `HasilLab` (Baseline/Endline) | ✅ (semua balita) | ✅ (hanya balita miliknya) — **dikunci ke hari yang sesuai, lihat §7** |
 | Isi form onboarding hari-1 (`submitHariPertama`) | ✅ | ✅ (hanya balita miliknya) |
 | Tambah akun kader | ✅ | ❌ |
 | **Update akun kader** (username/password) | ✅ | ❌ |
@@ -36,7 +40,7 @@ berdasarkan `kaderId = session.user.id` di level query database, bukan hanya dis
 | `beratBadan` | Wajib angka positif. Rentang wajar 3–30 kg (`BERAT_BADAN_MIN_WAJAR`/`MAX_WAJAR`). Di luar rentang → warning, tetap bisa disimpan dengan centang konfirmasi (bukan hard block). |
 | `tinggiBadan` | **Baru** — wajib angka positif, dicatat harian (bukan hanya sekali di awal seperti draft v1). |
 | `konsumsiNuggetGram` | 0–50 gram (`TARGET_NUGGET_GRAM`). |
-| `karbohidratGram`, `proteinGram`, `lemakGram` | **Baru** — wajib angka ≥ 0, dicatat harian bersamaan dengan input lainnya. |
+| `karbohidratGram`, `proteinGram`, `lemakGram` | **Opsional** (sejak 19 Okt 2026) — boleh dikosongkan (disimpan `null`); kalau diisi harus angka ≥ 0. Berlaku di input harian dan onboarding hari-1. |
 | `hariKe` | 1–28, harus sesuai `tanggalMulai` balita. |
 | `tanggal` | Tidak boleh di masa depan. |
 
@@ -44,7 +48,7 @@ berdasarkan `kaderId = session.user.id` di level query database, bukan hanya dis
 
 | Field | Rule |
 |---|---|
-| `tipe` | `BASELINE` \| `PERTENGAHAN` \| `ENDLINE` (**3 tipe**, bukan 2). Satu balita maksimal 1 record per tipe (unique constraint, disimpan via `upsert`). |
+| `tipe` | `BASELINE` \| `ENDLINE` (**2 tipe**; `PERTENGAHAN` masih ada di enum DB tapi tidak dipakai lagi). Satu balita maksimal 1 record per tipe (unique constraint, disimpan via `upsert`). |
 | `hbValue` | Angka positif, rentang wajar klinis 7–16 g/dL (`HB_MIN_WAJAR`/`MAX_WAJAR`). Di luar rentang → warning + perlu konfirmasi, sama seperti berat badan. |
 | `zincValue`, `feValue` | **`feValue` baru ditambahkan** — angka positif, satuan sesuai lab yang dipakai. |
 | `tanggalPengukuran` (`ENDLINE`) | Harus ≥ 28 hari setelah `tanggalPengukuran` `BASELINE` balita tsb (tetap dicek sebagai pengaman tambahan, walau §7 di bawah sudah mengunci secara hari studi). |
@@ -76,8 +80,7 @@ kosong. Tidak ada backfill.
 
 ## 7. Aturan "Kunci Hari" — `HasilLab` (baru)
 
-Hb/Zinc/Fe diambil di **3 checkpoint**: Baseline (Hari ke-1), Pertengahan (Hari ke-14), Endline
-(Hari ke-28) — lihat `HARI_LAB` di `src/lib/constants.ts`. Untuk mencegah data ke-input/ke-ubah
+Hb/Zinc/Fe diambil di **2 checkpoint**: Baseline (Hari ke-1) dan Endline (Hari ke-28) — lihat `HARI_LAB` di `src/lib/constants.ts`. Untuk mencegah data ke-input/ke-ubah
 tidak sengaja di hari yang salah:
 
 - Form input untuk suatu tipe lab **hanya dirender** kalau hari studi balita itu **hari ini**
@@ -91,7 +94,7 @@ tidak sengaja di hari yang salah:
   hari biasa — jadi tetap bisa diisi kapan saja **selama data hari-1 belum pernah disubmit**,
   tidak strict harus tepat di hari kalender balita didaftarkan (mengantisipasi kader yang baru
   buka sistem beberapa hari setelah balita ditambahkan).
-- **Belum ada toleransi keterlambatan** untuk Pertengahan/Endline (mis. ±2 hari) — kalau kader
+- **Belum ada toleransi keterlambatan** untuk Endline (mis. ±2 hari) — kalau kader
   terlambat mengukur di luar hari target, saat ini datanya tidak bisa diinput sama sekali lewat
   form. Kalau dibutuhkan toleransi atau override khusus admin, ini dicatat sebagai enhancement
   di §11.
@@ -136,7 +139,7 @@ muncul di form input aktif, tapi tetap muncul di export dengan penanda status.
   `RiwayatPemeriksaanAwal` menyimpan kategori/Z-score dari catatan lama secara manual, belum ada
   perhitungan otomatis untuk data studi 28 hari yang baru
 - 🔲 Backfill data dengan flag "telat input"
-- 🔲 Toleransi keterlambatan (±N hari) atau override admin untuk checkpoint lab Pertengahan/Endline
+- 🔲 Toleransi keterlambatan (±N hari) atau override admin untuk checkpoint lab Endline
   yang terlewat (lihat §7)
 - 🔲 Multi-studi / multi-cohort
 - 🔲 Alert otomatis kalau berat badan balita turun signifikan (butuh threshold klinis yang tervalidasi)

@@ -7,6 +7,13 @@ import {
   TIPE_LAB,
 } from "./constants";
 
+// Asupan makronutrien (karbohidrat/protein/lemak) bersifat opsional: kolom kosong
+// -> undefined (disimpan null), kalau diisi harus angka >= 0.
+export const gramOpsional = z.preprocess(
+  (v) => (v === "" || v === null || v === undefined ? undefined : v),
+  z.coerce.number().min(0, "Tidak boleh negatif").optional()
+);
+
 export const loginSchema = z.object({
   username: z.string().min(1, "Username wajib diisi"),
   password: z.string().min(1, "Password wajib diisi"),
@@ -46,9 +53,9 @@ export const catatanHarianSchema = z.object({
     .number()
     .min(0, "Tidak boleh negatif")
     .max(TARGET_NUGGET_GRAM, `Maksimal ${TARGET_NUGGET_GRAM} gram`),
-  karbohidratGram: z.coerce.number().min(0, "Tidak boleh negatif"),
-  proteinGram: z.coerce.number().min(0, "Tidak boleh negatif"),
-  lemakGram: z.coerce.number().min(0, "Tidak boleh negatif"),
+  karbohidratGram: gramOpsional,
+  proteinGram: gramOpsional,
+  lemakGram: gramOpsional,
   confirmOutOfRange: z.coerce.boolean().optional(),
 });
 
