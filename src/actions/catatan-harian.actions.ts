@@ -64,6 +64,7 @@ export async function submitCatatanHarian(
         tinggiBadan: data.tinggiBadan,
         beratBadan: data.beratBadan,
         konsumsiNuggetGram: data.konsumsiNuggetGram,
+        energiKkal: data.energiKkal ?? null,
         karbohidratGram: data.karbohidratGram ?? null,
         proteinGram: data.proteinGram ?? null,
         lemakGram: data.lemakGram ?? null,

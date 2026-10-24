@@ -130,6 +130,7 @@ model CatatanHarian {
   karbohidratGram    Float?
   proteinGram        Float?
   lemakGram          Float?
+  energiKkal         Float?
   statusInput        StatusInput @default(TIDAK_TERISI)
   inputBy            String?
   createdAt          DateTime    @default(now())
@@ -148,7 +149,7 @@ model HasilLab {
   tipe              TipeLab
   hbValue           Float
   zincValue         Float
-  feValue           Float
+  feValue           Float?
   tanggalPengukuran DateTime
   inputBy           String?
   createdAt         DateTime @default(now())

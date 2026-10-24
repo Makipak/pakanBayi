@@ -3,6 +3,7 @@ import { DURASI_STUDI_HARI } from "./constants";
 export function formatTanggal(d: Date | string): string {
   const date = typeof d === "string" ? new Date(d) : d;
   return new Intl.DateTimeFormat("id-ID", {
+    timeZone: "Asia/Jakarta",
     day: "2-digit",
     month: "short",
     year: "numeric",

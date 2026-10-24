@@ -6,6 +6,7 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { balitaSchema, balitaStatusSchema } from "@/lib/validators";
 import { DURASI_STUDI_HARI } from "@/lib/constants";
+import { tanggalStudi, ymdKeDate, ymdWib } from "@/lib/data";
 
 async function requireAdmin() {
   const session = await auth();
@@ -51,10 +52,9 @@ export async function createBalita(formData: FormData): Promise<ActionResult> {
     });
 
     // Generate 28 baris CatatanHarian kosong — lihat rule.md §3
-    const mulai = balita.tanggalMulai;
+    const mulaiYmd = ymdWib(balita.tanggalMulai);
     const rows = Array.from({ length: DURASI_STUDI_HARI }, (_, day) => {
-      const tanggal = new Date(mulai);
-      tanggal.setDate(tanggal.getDate() + day);
+      const tanggal = tanggalStudi(mulaiYmd, day + 1);
       return {
         balitaId: balita.id,
         tanggal,
@@ -69,6 +69,39 @@ export async function createBalita(formData: FormData): Promise<ActionResult> {
     return { ok: true };
   } catch (e) {
     return { ok: false, error: e instanceof Error ? e.message : "Gagal menambah balita" };
+  }
+}
+
+// Menentukan tanggal Hari ke-1; tanggal Hari ke-2..28 dihitung berurutan darinya.
+// Isian harian tetap menempel pada nomor harinya (hariKe), hanya tanggalnya yang bergeser.
+export async function updateTanggalMulai(balitaId: string, ymd: string): Promise<ActionResult> {
+  try {
+    await requireAdmin();
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(ymd)) return { ok: false, error: "Tanggal tidak valid" };
+    const base = ymdKeDate(ymd);
+    if (Number.isNaN(base.getTime()) || ymdWib(base) !== ymd) {
+      return { ok: false, error: "Tanggal tidak valid" };
+    }
+    const existing = await prisma.balita.findUnique({ where: { id: balitaId }, select: { id: true } });
+    if (!existing) return { ok: false, error: "Balita tidak ditemukan" };
+
+    await prisma.$transaction([
+      prisma.balita.update({ where: { id: balitaId }, data: { tanggalMulai: base } }),
+      ...Array.from({ length: DURASI_STUDI_HARI }, (_, i) =>
+        prisma.catatanHarian.updateMany({
+          where: { balitaId, hariKe: i + 1 },
+          data: { tanggal: tanggalStudi(ymd, i + 1) },
+        })
+      ),
+    ]);
+
+    revalidatePath(`/admin/balita/${balitaId}`);
+    revalidatePath(`/kader/balita/${balitaId}`);
+    revalidatePath("/admin/dashboard");
+    revalidatePath("/kader/dashboard");
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : "Gagal menyimpan tanggal" };
   }
 }
 

@@ -9,6 +9,7 @@ import { complianceRate, delta, formatTanggal } from "@/lib/utils";
 import { todayCatatan } from "@/lib/data";
 import { DURASI_STUDI_HARI, HARI_LAB, LABEL_LAB, TIPE_LAB } from "@/lib/constants";
 import { HasilLabForm } from "@/components/HasilLabForm";
+import { KalenderStudi } from "@/components/KalenderStudi";
 import { OnboardingForm } from "@/components/OnboardingForm";
 
 export default async function KaderBalitaDetailPage(
@@ -37,7 +38,7 @@ export default async function KaderBalitaDetailPage(
   const deltaTB = delta(tinggiTerakhir, balita.tinggiBadanAwal);
 
   const rataMakro = (
-    field: "karbohidratGram" | "proteinGram" | "lemakGram"
+    field: "energiKkal" | "karbohidratGram" | "proteinGram" | "lemakGram"
   ): number | null => {
     if (terisi.length === 0) return null;
     const total = terisi.reduce((sum, c) => sum + (c[field] ?? 0), 0);
@@ -77,6 +78,8 @@ export default async function KaderBalitaDetailPage(
         </div>
         <StatusBadge status={balita.status} />
       </div>
+
+      <KalenderStudi catatan={balita.catatanHarian} />
 
       {balita.status === "AKTIF" && day1BelumSelesai && hari1 ? (
         <Card>
@@ -157,7 +160,8 @@ export default async function KaderBalitaDetailPage(
 
       <Card>
         <h2 className="mb-3 font-medium text-slate-900">Rata-rata Asupan Harian</h2>
-        <div className="grid grid-cols-3 gap-3 text-center">
+        <div className="grid grid-cols-2 gap-3 text-center sm:grid-cols-4">
+          <Stat label="Energi" value={rataMakro("energiKkal") !== null ? `${rataMakro("energiKkal")} kkal` : "-"} />
           <Stat label="Karbohidrat" value={rataMakro("karbohidratGram") !== null ? `${rataMakro("karbohidratGram")} g` : "-"} />
           <Stat label="Protein" value={rataMakro("proteinGram") !== null ? `${rataMakro("proteinGram")} g` : "-"} />
           <Stat label="Lemak" value={rataMakro("lemakGram") !== null ? `${rataMakro("lemakGram")} g` : "-"} />
@@ -165,7 +169,7 @@ export default async function KaderBalitaDetailPage(
       </Card>
 
       <Card>
-        <h2 className="mb-3 font-medium text-slate-900">Hasil Lab (Hb, Zinc &amp; Fe)</h2>
+        <h2 className="mb-3 font-medium text-slate-900">Hasil Lab (Hb &amp; Zinc)</h2>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <LabSummary label={`${LABEL_LAB.BASELINE} (Hari-${HARI_LAB.BASELINE})`} data={baseline} />
           <LabSummary label={`${LABEL_LAB.ENDLINE} (Hari-${HARI_LAB.ENDLINE})`} data={endline} />
@@ -209,7 +213,7 @@ function LabSummary({
   data,
 }: {
   label: string;
-  data?: { hbValue: number; zincValue: number; feValue: number; tanggalPengukuran: Date };
+  data?: { hbValue: number; zincValue: number; feValue?: number | null; tanggalPengukuran: Date };
 }) {
   return (
     <div className="rounded-lg bg-slate-50 p-3">
@@ -218,7 +222,9 @@ function LabSummary({
         <>
           <p className="mt-1 text-sm text-slate-900">Hb: {data.hbValue} g/dL</p>
           <p className="text-sm text-slate-900">Zinc: {data.zincValue} µg/dL</p>
-          <p className="text-sm text-slate-900">Fe: {data.feValue} µg/dL</p>
+          {data.feValue != null && (
+            <p className="text-sm text-slate-900">Fe: {data.feValue} µg/dL (data lama)</p>
+          )}
           <p className="mt-1 text-xs text-slate-400">{formatTanggal(data.tanggalPengukuran)}</p>
         </>
       ) : (

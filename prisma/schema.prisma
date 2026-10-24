@@ -112,6 +112,7 @@ model CatatanHarian {
   karbohidratGram    Float?
   proteinGram        Float?
   lemakGram          Float?
+  energiKkal         Float?
   statusInput        String   @default("TIDAK_TERISI") // TERISI | TIDAK_TERISI
   inputBy            String?
   createdAt          DateTime @default(now())
@@ -130,7 +131,7 @@ model HasilLab {
   tipe              String // BASELINE | ENDLINE
   hbValue           Float
   zincValue         Float
-  feValue           Float
+  feValue           Float?
   tanggalPengukuran DateTime
   inputBy           String?
   createdAt         DateTime @default(now())

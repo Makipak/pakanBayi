@@ -24,7 +24,7 @@ export async function GET() {
       .sort((a, c) => a.hariKe - c.hariKe);
     const beratTerakhir = terisi[terisi.length - 1]?.beratBadan ?? null;
     const tinggiTerakhir = terisi[terisi.length - 1]?.tinggiBadan ?? null;
-    const rataGram = (field: "konsumsiNuggetGram" | "karbohidratGram" | "proteinGram" | "lemakGram") =>
+    const rataGram = (field: "konsumsiNuggetGram" | "energiKkal" | "karbohidratGram" | "proteinGram" | "lemakGram") =>
       terisi.length
         ? Math.round((terisi.reduce((sum, c) => sum + (c[field] ?? 0), 0) / terisi.length) * 100) / 100
         : null;
@@ -47,6 +47,7 @@ export async function GET() {
       berat_badan_terakhir_kg: beratTerakhir ?? "",
       delta_berat_badan_kg: delta(beratTerakhir, b.beratBadanAwal) ?? "",
       rata_rata_konsumsi_nugget_gram: rataGram("konsumsiNuggetGram") ?? "",
+      rata_rata_energi_kkal: rataGram("energiKkal") ?? "",
       rata_rata_karbohidrat_gram: rataGram("karbohidratGram") ?? "",
       rata_rata_protein_gram: rataGram("proteinGram") ?? "",
       rata_rata_lemak_gram: rataGram("lemakGram") ?? "",
@@ -58,9 +59,6 @@ export async function GET() {
       zinc_baseline: baseline?.zincValue ?? "",
       zinc_endline: endline?.zincValue ?? "",
       delta_zinc: delta(endline?.zincValue, baseline?.zincValue ?? 0) ?? "",
-      fe_baseline: baseline?.feValue ?? "",
-      fe_endline: endline?.feValue ?? "",
-      delta_fe: delta(endline?.feValue, baseline?.feValue ?? 0) ?? "",
     };
   });
 

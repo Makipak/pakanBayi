@@ -1,5 +1,10 @@
 # Schema — NUTRIMO (Nuget Nutrition Monitoring)
 
+> **Update 24 Okt 2026:** (1) halaman detail balita punya **Kalender Studi** (hari ke-1…28 beserta tanggalnya) di atas
+> data harian & hasil lab; admin menentukan tanggal Hari ke-1, tanggal berikutnya mengikuti otomatis. Tanggal dihitung
+> per hari kalender WIB. (2) **Fe dihapus** dari input hasil lab (hanya Hb & Zinc). (3) Input harian menambah
+> **Energi (kkal)** — bersama karbohidrat/protein/lemak, semuanya opsional.
+
 > **Update 19 Okt 2026:** hasil lab Hb/Zinc/Fe kini **2 checkpoint** (Baseline hari-1 & Endline hari-28);
 > checkpoint Pertengahan dihapus (nilai enum `PERTENGAHAN` tetap ada di DB untuk data lama, tidak dipakai).
 > Asupan makronutrien harian (karbohidrat/protein/lemak) kini **opsional**.
@@ -97,6 +102,7 @@ erDiagram
         float karbohidratGram "nullable"
         float proteinGram "nullable"
         float lemakGram "nullable"
+        float energiKkal "nullable"
         string statusInput "TERISI | TIDAK_TERISI"
         string inputBy FK "nullable"
         datetime createdAt
@@ -108,7 +114,7 @@ erDiagram
         string tipe "BASELINE | PERTENGAHAN | ENDLINE"
         float hbValue
         float zincValue
-        float feValue
+        float feValue "nullable, tidak diinput lagi"
         datetime tanggalPengukuran
         string inputBy FK "nullable"
         datetime createdAt
@@ -217,6 +223,7 @@ Sekarang mencakup tinggi badan + 3 makronutrien harian, bukan cuma berat badan +
 | `tinggiBadan` | float, nullable | | cm. Null jika `statusInput = TIDAK_TERISI` |
 | `beratBadan` | float, nullable | | kg |
 | `konsumsiNuggetGram` | float, nullable | | Target 50gr (2 biji × 25gr) |
+| `energiKkal` | float, nullable | | kkal, asupan energi harian (opsional; ditambah 24 Okt 2026) |
 | `karbohidratGram` | float, nullable | | gram, asupan harian (opsional diisi) |
 | `proteinGram` | float, nullable | | gram, asupan harian |
 | `lemakGram` | float, nullable | | gram, asupan harian |
@@ -231,7 +238,7 @@ Sekarang mencakup tinggi badan + 3 makronutrien harian, bukan cuma berat badan +
 
 ## 6. Tabel: `HasilLab`
 
-Hasil Hb, Zinc, **dan Fe** (zat besi) — **2 baris per balita**: Baseline dan Endline
+Hasil Hb dan Zinc (Fe tidak diinput lagi sejak 24 Okt 2026, kolom dibiarkan nullable) — **2 baris per balita**: Baseline dan Endline
 (checkpoint Pertengahan dihapus 19 Okt 2026 — lihat `rule.md` §7 untuk aturan "kunci hari" per checkpoint).
 
 | Field | Tipe | Constraint | Keterangan |
@@ -241,7 +248,7 @@ Hasil Hb, Zinc, **dan Fe** (zat besi) — **2 baris per balita**: Baseline dan E
 | `tipe` | string (`BASELINE`, `ENDLINE`; enum DB masih memuat `PERTENGAHAN` untuk data lama) | not null | Hari-1 dan hari-28 (lihat `HARI_LAB` di `constants.ts`) |
 | `hbValue` | float | not null | g/dL |
 | `zincValue` | float | not null | µg/dL |
-| `feValue` | float | not null | µg/dL |
+| `feValue` | float | nullable | µg/dL — legacy, tidak diisi lagi |
 | `tanggalPengukuran` | datetime | not null | |
 | `inputBy` | string, nullable | FK → `User.id` | |
 | `createdAt` | datetime | default now | |
@@ -254,7 +261,7 @@ Hasil Hb, Zinc, **dan Fe** (zat besi) — **2 baris per balita**: Baseline dan E
 - **Delta berat/tinggi badan** = nilai terakhir yang terisi − nilai awal (`beratBadanAwal`/`tinggiBadanAwal`)
 - **Delta Hb/Zinc/Fe** = `HasilLab(ENDLINE)` − `HasilLab(BASELINE)` (Pertengahan belum dipakai untuk delta di UI saat ini)
 - **Compliance rate** (per balita) = `COUNT(CatatanHarian WHERE statusInput=TERISI) / 28 × 100%`
-- **Rata-rata asupan harian** = `AVG(konsumsiNuggetGram | karbohidratGram | proteinGram | lemakGram)` dari baris yang terisi
+- **Rata-rata asupan harian** = `AVG(konsumsiNuggetGram | energiKkal | karbohidratGram | proteinGram | lemakGram)` dari baris yang terisi
 
 ## 8. Prisma Schema (aktual — `prisma/schema.prisma`)
 
@@ -362,6 +369,7 @@ model CatatanHarian {
   karbohidratGram    Float?
   proteinGram        Float?
   lemakGram          Float?
+  energiKkal         Float?
   statusInput        String   @default("TIDAK_TERISI")
   inputBy            String?
   createdAt          DateTime @default(now())
@@ -380,7 +388,7 @@ model HasilLab {
   tipe              String
   hbValue           Float
   zincValue         Float
-  feValue           Float
+  feValue           Float?
   tanggalPengukuran DateTime
   inputBy           String?
   createdAt         DateTime @default(now())

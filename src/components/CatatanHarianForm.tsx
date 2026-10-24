@@ -13,6 +13,7 @@ export function CatatanHarianForm({
   defaultTinggiBadan,
   defaultBeratBadan,
   defaultKonsumsi,
+  defaultEnergi,
   defaultKarbohidrat,
   defaultProtein,
   defaultLemak,
@@ -23,6 +24,7 @@ export function CatatanHarianForm({
   defaultTinggiBadan?: number | null;
   defaultBeratBadan?: number | null;
   defaultKonsumsi?: number | null;
+  defaultEnergi?: number | null;
   defaultKarbohidrat?: number | null;
   defaultProtein?: number | null;
   defaultLemak?: number | null;
@@ -98,8 +100,20 @@ export function CatatanHarianForm({
       </div>
 
       <div>
-        <p className="mb-1 text-sm font-medium text-slate-700">Asupan makronutrien harian (opsional)</p>
-        <div className="grid grid-cols-3 gap-3">
+        <p className="mb-1 text-sm font-medium text-slate-700">Asupan harian: energi &amp; makronutrien (opsional)</p>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div>
+            <Label htmlFor="energiKkal">Energi (kkal)</Label>
+            <Input
+              id="energiKkal"
+              name="energiKkal"
+              type="number"
+              step="1"
+              min="0"
+              defaultValue={defaultEnergi ?? undefined}
+              inputMode="decimal"
+            />
+          </div>
           <div>
             <Label htmlFor="karbohidratGram">Karbohidrat (g)</Label>
             <Input

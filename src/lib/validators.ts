@@ -53,6 +53,7 @@ export const catatanHarianSchema = z.object({
     .number()
     .min(0, "Tidak boleh negatif")
     .max(TARGET_NUGGET_GRAM, `Maksimal ${TARGET_NUGGET_GRAM} gram`),
+  energiKkal: gramOpsional,
   karbohidratGram: gramOpsional,
   proteinGram: gramOpsional,
   lemakGram: gramOpsional,
@@ -64,7 +65,6 @@ export const hasilLabSchema = z.object({
   tipe: z.enum(TIPE_LAB),
   hbValue: z.coerce.number().positive("Nilai Hb wajib angka positif"),
   zincValue: z.coerce.number().positive("Nilai Zinc wajib angka positif"),
-  feValue: z.coerce.number().positive("Nilai Fe wajib angka positif"),
   tanggalPengukuran: z.string().min(1, "Tanggal wajib diisi"),
   confirmOutOfRange: z.coerce.boolean().optional(),
 });

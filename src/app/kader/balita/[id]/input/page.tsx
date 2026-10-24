@@ -57,6 +57,7 @@ export default async function InputHarianPage(
             defaultTinggiBadan={hariIni.tinggiBadan}
             defaultBeratBadan={hariIni.beratBadan}
             defaultKonsumsi={hariIni.konsumsiNuggetGram}
+            defaultEnergi={hariIni.energiKkal}
             defaultKarbohidrat={hariIni.karbohidratGram}
             defaultProtein={hariIni.proteinGram}
             defaultLemak={hariIni.lemakGram}

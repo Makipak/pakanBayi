@@ -1,6 +1,7 @@
 import Papa from "papaparse";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { ymdWib } from "@/lib/data";
 
 export async function GET() {
   const session = await auth();
@@ -22,10 +23,11 @@ export async function GET() {
     posyandu: c.balita.posyandu ?? "",
     kader: c.balita.kader.nama,
     hari_ke: c.hariKe,
-    tanggal: c.tanggal.toISOString().slice(0, 10),
+    tanggal: ymdWib(c.tanggal),
     tinggi_badan_cm: c.tinggiBadan ?? "",
     berat_badan_kg: c.beratBadan ?? "",
     konsumsi_nugget_gram: c.konsumsiNuggetGram ?? "",
+    energi_kkal: c.energiKkal ?? "",
     karbohidrat_gram: c.karbohidratGram ?? "",
     protein_gram: c.proteinGram ?? "",
     lemak_gram: c.lemakGram ?? "",

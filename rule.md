@@ -1,5 +1,10 @@
 # Rule — NUTRIMO (Nuget Nutrition Monitoring): Business Rules & Validasi
 
+> **Update 24 Okt 2026:** (1) halaman detail balita punya **Kalender Studi** (hari ke-1…28 beserta tanggalnya) di atas
+> data harian & hasil lab; admin menentukan tanggal Hari ke-1, tanggal berikutnya mengikuti otomatis. Tanggal dihitung
+> per hari kalender WIB. (2) **Fe dihapus** dari input hasil lab (hanya Hb & Zinc). (3) Input harian menambah
+> **Energi (kkal)** — bersama karbohidrat/protein/lemak, semuanya opsional.
+
 > **Update 19 Okt 2026:** hasil lab Hb/Zinc/Fe kini **2 checkpoint** (Baseline hari-1 & Endline hari-28);
 > checkpoint Pertengahan dihapus (nilai enum `PERTENGAHAN` tetap ada di DB untuk data lama, tidak dipakai).
 > Asupan makronutrien harian (karbohidrat/protein/lemak) kini **opsional**.
@@ -40,7 +45,7 @@ berdasarkan `kaderId = session.user.id` di level query database, bukan hanya dis
 | `beratBadan` | Wajib angka positif. Rentang wajar 3–30 kg (`BERAT_BADAN_MIN_WAJAR`/`MAX_WAJAR`). Di luar rentang → warning, tetap bisa disimpan dengan centang konfirmasi (bukan hard block). |
 | `tinggiBadan` | **Baru** — wajib angka positif, dicatat harian (bukan hanya sekali di awal seperti draft v1). |
 | `konsumsiNuggetGram` | 0–50 gram (`TARGET_NUGGET_GRAM`). |
-| `karbohidratGram`, `proteinGram`, `lemakGram` | **Opsional** (sejak 19 Okt 2026) — boleh dikosongkan (disimpan `null`); kalau diisi harus angka ≥ 0. Berlaku di input harian dan onboarding hari-1. |
+| `energiKkal`, `karbohidratGram`, `proteinGram`, `lemakGram` | **Opsional** (sejak 19 Okt 2026) — boleh dikosongkan (disimpan `null`); kalau diisi harus angka ≥ 0. Berlaku di input harian dan onboarding hari-1. |
 | `hariKe` | 1–28, harus sesuai `tanggalMulai` balita. |
 | `tanggal` | Tidak boleh di masa depan. |
 
@@ -50,7 +55,7 @@ berdasarkan `kaderId = session.user.id` di level query database, bukan hanya dis
 |---|---|
 | `tipe` | `BASELINE` \| `ENDLINE` (**2 tipe**; `PERTENGAHAN` masih ada di enum DB tapi tidak dipakai lagi). Satu balita maksimal 1 record per tipe (unique constraint, disimpan via `upsert`). |
 | `hbValue` | Angka positif, rentang wajar klinis 7–16 g/dL (`HB_MIN_WAJAR`/`MAX_WAJAR`). Di luar rentang → warning + perlu konfirmasi, sama seperti berat badan. |
-| `zincValue`, `feValue` | **`feValue` baru ditambahkan** — angka positif, satuan sesuai lab yang dipakai. |
+| `zincValue` | Angka positif, satuan sesuai lab yang dipakai. `feValue` **tidak diinput lagi** (kolom nullable, data lama dipertahankan). |
 | `tanggalPengukuran` (`ENDLINE`) | Harus ≥ 28 hari setelah `tanggalPengukuran` `BASELINE` balita tsb (tetap dicek sebagai pengaman tambahan, walau §7 di bawah sudah mengunci secara hari studi). |
 
 ## 4. Validasi Input — `Balita`
@@ -80,7 +85,7 @@ kosong. Tidak ada backfill.
 
 ## 7. Aturan "Kunci Hari" — `HasilLab` (baru)
 
-Hb/Zinc/Fe diambil di **2 checkpoint**: Baseline (Hari ke-1) dan Endline (Hari ke-28) — lihat `HARI_LAB` di `src/lib/constants.ts`. Untuk mencegah data ke-input/ke-ubah
+Hb/Zinc diambil di **2 checkpoint**: Baseline (Hari ke-1) dan Endline (Hari ke-28) — lihat `HARI_LAB` di `src/lib/constants.ts`. Untuk mencegah data ke-input/ke-ubah
 tidak sengaja di hari yang salah:
 
 - Form input untuk suatu tipe lab **hanya dirender** kalau hari studi balita itu **hari ini**

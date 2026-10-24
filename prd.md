@@ -1,5 +1,10 @@
 # PRD — NUTRIMO (Nuget Nutrition Monitoring)
 
+> **Update 24 Okt 2026:** (1) halaman detail balita punya **Kalender Studi** (hari ke-1…28 beserta tanggalnya) di atas
+> data harian & hasil lab; admin menentukan tanggal Hari ke-1, tanggal berikutnya mengikuti otomatis. Tanggal dihitung
+> per hari kalender WIB. (2) **Fe dihapus** dari input hasil lab (hanya Hb & Zinc). (3) Input harian menambah
+> **Energi (kkal)** — bersama karbohidrat/protein/lemak, semuanya opsional.
+
 > **Update 19 Okt 2026:** hasil lab Hb/Zinc/Fe kini **2 checkpoint** (Baseline hari-1 & Endline hari-28);
 > checkpoint Pertengahan dihapus (nilai enum `PERTENGAHAN` tetap ada di DB untuk data lama, tidak dipakai).
 > Asupan makronutrien harian (karbohidrat/protein/lemak) kini **opsional**.
@@ -20,8 +25,8 @@ Studi intervensi gizi untuk memantau efektivitas pemberian nugget (fortifikasi z
 status gizi balita selama **28 hari**. Efektivitas diukur dari indikator:
 
 - **Berat badan & tinggi badan** (naik/turun, dicatat harian)
-- **Asupan makronutrien harian** (karbohidrat, protein, lemak) — **opsional** — sejalan dengan konsumsi nugget
-- **Kadar Zinc, Hb (hemoglobin), dan Fe (zat besi)** — diambil 2x: awal (Baseline) dan akhir (Endline)
+- **Asupan harian: energi (kkal), karbohidrat, protein, lemak** — **opsional** — sejalan dengan konsumsi nugget
+- **Kadar Zinc dan Hb (hemoglobin)** — diambil 2x: awal (Baseline) dan akhir (Endline)
 
 Saat ini pencatatan dilakukan manual oleh kader posyandu di lapangan. NUTRIMO dibangun untuk
 mendigitalkan proses pencatatan, memastikan integritas data (siapa input, kapan), dan
@@ -31,7 +36,7 @@ menyediakan agregasi data untuk kebutuhan analisis skripsi.
 
 1. Memudahkan kader mencatat konsumsi nugget, berat/tinggi badan, dan asupan makronutrien balita
    secara harian, dari HP/web.
-2. Mencatat hasil lab (Hb, Zinc, Fe) pada **2 checkpoint**: Baseline (hari-1) dan Endline
+2. Mencatat hasil lab (Hb, Zinc) pada **2 checkpoint**: Baseline (hari-1) dan Endline
    (hari-28) — dengan pengamanan supaya data tidak ke-input/ke-ubah tidak
    sengaja di hari yang salah.
 3. Mencatat data balita seminimal mungkin saat registrasi (nama, usia, jenis kelamin, tinggi &
@@ -62,7 +67,8 @@ akun kader (edit ditambahkan setelah rencana v1 — sebelumnya cuma tambah/hapus
   karbohidrat/protein/lemak (gram)
 - **Onboarding Hari ke-1**: input harian pertama + Hasil Lab Baseline digabung jadi satu form/satu
   submit, supaya kader tidak perlu bolak-balik halaman saat balita baru mulai ikut studi
-- Input hasil lab oleh Kader/Admin: Hb, Zinc, Fe — di 2 checkpoint (Baseline/Endline),
+- **Kalender Studi** di detail balita: menampilkan tanggal tiap hari ke-1…28; Admin menentukan tanggal Hari ke-1 (default: tanggal pendaftaran)
+- Input hasil lab oleh Kader/Admin: Hb, Zinc — di 2 checkpoint (Baseline/Endline),
   masing-masing **dikunci** hanya bisa diisi tepat di hari studi yang sesuai (kecuali Baseline,
   lihat §8 di `rule.md`)
 - Dashboard progres per balita (grafik tren berat badan & tinggi badan 28 hari, ringkasan asupan,
@@ -102,7 +108,7 @@ read-only di halaman detail admin.
 | **Tinggi badan** | Harian (28x) | Ditambahkan — semula direncanakan sekali di awal saja |
 | Konsumsi nugget (gram) | Harian (28x) | Target 50gr/hari (2 biji × 25gr) |
 | **Karbohidrat, protein, lemak** (gram) | Harian (28x), opsional | Ditambahkan, sejalan dengan input konsumsi nugget; boleh dikosongkan |
-| **Hb, Zinc, Fe** | **2x**: Hari-1 (Baseline), Hari-28 (Endline) | Sempat 3x (dengan Pertengahan hari-14), dikembalikan ke 2x pada 19 Okt 2026; Fe ditambahkan sebagai indikator ketiga selain Hb & Zinc. Baseline sekarang digabung dengan input harian pertama (onboarding) |
+| **Hb, Zinc** (Fe dihapus 24 Okt 2026) | **2x**: Hari-1 (Baseline), Hari-28 (Endline) | Sempat 3x (dengan Pertengahan hari-14), dikembalikan ke 2x pada 19 Okt 2026; Fe ditambahkan sebagai indikator ketiga selain Hb & Zinc. Baseline sekarang digabung dengan input harian pertama (onboarding) |
 
 ## 7. Fitur UX Baru (tidak ada di rencana awal)
 

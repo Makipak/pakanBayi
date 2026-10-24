@@ -28,6 +28,7 @@ const hariPertamaSchema = z.object({
     .number()
     .min(0, "Tidak boleh negatif")
     .max(TARGET_NUGGET_GRAM, `Maksimal ${TARGET_NUGGET_GRAM} gram`),
+  energiKkal: gramOpsional,
   karbohidratGram: gramOpsional,
   proteinGram: gramOpsional,
   lemakGram: gramOpsional,
@@ -36,7 +37,6 @@ const hariPertamaSchema = z.object({
   tanggalPengukuranLab: z.string().min(1, "Tanggal pengukuran lab wajib diisi"),
   hbValue: z.coerce.number().positive("Nilai Hb wajib angka positif"),
   zincValue: z.coerce.number().positive("Nilai Zinc wajib angka positif"),
-  feValue: z.coerce.number().positive("Nilai Fe wajib angka positif"),
   confirmHbOutOfRange: z.coerce.boolean().optional(),
 });
 
@@ -96,6 +96,7 @@ export async function submitHariPertama(
         tinggiBadan: data.tinggiBadan,
         beratBadan: data.beratBadan,
         konsumsiNuggetGram: data.konsumsiNuggetGram,
+        energiKkal: data.energiKkal ?? null,
         karbohidratGram: data.karbohidratGram ?? null,
         proteinGram: data.proteinGram ?? null,
         lemakGram: data.lemakGram ?? null,
@@ -109,7 +110,6 @@ export async function submitHariPertama(
       update: {
         hbValue: data.hbValue,
         zincValue: data.zincValue,
-        feValue: data.feValue,
         tanggalPengukuran: new Date(data.tanggalPengukuranLab),
         inputBy: session.user.id,
       },
@@ -118,7 +118,6 @@ export async function submitHariPertama(
         tipe: "BASELINE",
         hbValue: data.hbValue,
         zincValue: data.zincValue,
-        feValue: data.feValue,
         tanggalPengukuran: new Date(data.tanggalPengukuranLab),
         inputBy: session.user.id,
       },
