@@ -57,6 +57,12 @@ export const catatanHarianSchema = z.object({
   karbohidratGram: gramOpsional,
   proteinGram: gramOpsional,
   lemakGram: gramOpsional,
+  keterangan: z
+    .string()
+    .trim()
+    .max(500, "Keterangan maksimal 500 karakter")
+    .optional()
+    .transform((v) => (v ? v : undefined)),
   confirmOutOfRange: z.coerce.boolean().optional(),
 });
 

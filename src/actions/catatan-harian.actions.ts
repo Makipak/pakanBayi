@@ -76,6 +76,7 @@ export async function submitCatatanHarian(
         karbohidratGram: data.karbohidratGram ?? null,
         proteinGram: data.proteinGram ?? null,
         lemakGram: data.lemakGram ?? null,
+        keterangan: data.keterangan ?? null,
         salinanField: salinan.length ? salinan.join(",") : null,
         salinanDariHari: salinan.length && ref ? ref.hariKe : null,
         statusInput: "TERISI",

@@ -10,3 +10,6 @@ ALTER TABLE "Balita" ALTER COLUMN "usiaBulan" TYPE DOUBLE PRECISION;
 -- Penanda nilai yang sama persis dengan hari referensi (nilai awal terisi otomatis).
 ALTER TABLE "CatatanHarian" ADD COLUMN IF NOT EXISTS "salinanField" TEXT;
 ALTER TABLE "CatatanHarian" ADD COLUMN IF NOT EXISTS "salinanDariHari" INTEGER;
+
+-- Catatan/keterangan bebas per hari.
+ALTER TABLE "CatatanHarian" ADD COLUMN IF NOT EXISTS "keterangan" TEXT;

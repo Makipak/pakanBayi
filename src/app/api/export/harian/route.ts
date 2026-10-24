@@ -33,6 +33,7 @@ export async function GET() {
     lemak_gram: c.lemakGram ?? "",
     field_sama_dengan_hari_sebelumnya: c.salinanField ?? "",
     hari_referensi: c.salinanDariHari ?? "",
+    keterangan: c.keterangan ?? "",
     status_input: c.statusInput,
     diinput_oleh: c.input?.nama ?? "",
   }));

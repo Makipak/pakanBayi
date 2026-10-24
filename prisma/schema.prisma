@@ -114,6 +114,7 @@ model CatatanHarian {
   lemakGram          Float?
   energiKkal         Float?
   salinanField       String? // field yang nilainya identik dgn hari referensi (koma-terpisah), null = semua input baru
+  keterangan         String? // catatan bebas kader/admin untuk hari ini
   salinanDariHari    Int? // hariKe referensi untuk salinanField
   statusInput        String   @default("TIDAK_TERISI") // TERISI | TIDAK_TERISI
   inputBy            String?

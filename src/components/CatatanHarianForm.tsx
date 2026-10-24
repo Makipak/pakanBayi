@@ -20,6 +20,7 @@ type Props = {
   defaultLemak?: number | null;
   /** Hari TERISI terdekat sebelumnya; dipakai sebagai nilai awal field yang masih kosong. */
   referensi?: Referensi | null;
+  defaultKeterangan?: string | null;
 };
 
 // Normalisasi untuk membandingkan "24,5" dengan 24.5.
@@ -118,6 +119,19 @@ export function CatatanHarianForm(props: Props) {
           {field("proteinGram", "Protein (g)")}
           {field("lemakGram", "Lemak (g)")}
         </div>
+      </div>
+
+      <div>
+        <Label htmlFor="keterangan">Keterangan (opsional)</Label>
+        <textarea
+          id="keterangan"
+          name="keterangan"
+          rows={3}
+          maxLength={500}
+          defaultValue={props.defaultKeterangan ?? ""}
+          placeholder="Mis. anak sakit, nugget tidak habis, menu berbeda, dll."
+          className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-base outline-none focus:border-brand focus:ring-2 focus:ring-brand/20"
+        />
       </div>
 
       {needsConfirm && (

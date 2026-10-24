@@ -248,6 +248,23 @@ export default async function AdminBalitaDetailPage(
         </div>
       </Card>
 
+      {balita.catatanHarian.some((c) => c.keterangan) && (
+        <Card>
+          <h2 className="mb-3 font-medium text-slate-900">Keterangan Harian</h2>
+          <ul className="space-y-2 text-sm">
+            {balita.catatanHarian
+              .filter((c) => c.keterangan)
+              .sort((a, b) => a.hariKe - b.hariKe)
+              .map((c) => (
+                <li key={c.id} className="flex gap-3">
+                  <span className="w-16 shrink-0 text-slate-400">Hari {c.hariKe}</span>
+                  <span className="whitespace-pre-line text-slate-700">{c.keterangan}</span>
+                </li>
+              ))}
+          </ul>
+        </Card>
+      )}
+
       {balita.status === "AKTIF" && hariDipilih && sudahTiba(hariDipilih.tanggal) && (
         <Card id="input-harian">
           <h2 className="mb-3 font-medium text-slate-900">
@@ -266,6 +283,7 @@ export default async function AdminBalitaDetailPage(
             defaultKarbohidrat={hariDipilih.karbohidratGram}
             defaultProtein={hariDipilih.proteinGram}
             defaultLemak={hariDipilih.lemakGram}
+            defaultKeterangan={hariDipilih.keterangan}
             referensi={cariReferensi(balita.catatanHarian, hariDipilih.hariKe)}
           />
         </Card>

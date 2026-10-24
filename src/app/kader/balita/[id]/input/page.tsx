@@ -64,6 +64,7 @@ export default async function InputHarianPage(
             defaultKarbohidrat={hariIni.karbohidratGram}
             defaultProtein={hariIni.proteinGram}
             defaultLemak={hariIni.lemakGram}
+            defaultKeterangan={hariIni.keterangan}
             referensi={cariReferensi(balita.catatanHarian, hariIni.hariKe)}
           />
         )}
