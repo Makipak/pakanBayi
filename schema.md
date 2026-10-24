@@ -62,7 +62,7 @@ erDiagram
         string rw "nullable"
         string kaderId FK
         string status "AKTIF | SELESAI | DROPOUT"
-        datetime tanggalMulai
+        datetime tanggalMulai "nullable"
         datetime createdAt
     }
 
@@ -170,7 +170,7 @@ detail admin; balita baru akan bernilai `NULL`.
 | `rw` | string, nullable | | |
 | `kaderId` | string | FK → `User.id`, not null | Kader penanggung jawab |
 | `status` | string (`AKTIF`, `SELESAI`, `DROPOUT`) | default `AKTIF` | |
-| `tanggalMulai` | datetime | default now | Tanggal balita mulai ikut studi 28 hari — dasar hitung `hariKe` |
+| `tanggalMulai` | datetime, nullable | | Tanggal Hari ke-1 penelitian, dipilih lewat kalender (null = belum dimulai, belum ada baris `CatatanHarian`) — dasar hitung `hariKe` |
 | `createdAt` | datetime | default now | |
 
 **Index:** `kaderId`.
@@ -318,7 +318,7 @@ model Balita {
 
   kaderId      String
   status       String   @default("AKTIF")
-  tanggalMulai DateTime @default(now())
+  tanggalMulai DateTime?
   createdAt    DateTime @default(now())
 
   kader                  User                    @relation("KaderBalita", fields: [kaderId], references: [id])

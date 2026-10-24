@@ -29,7 +29,7 @@ export default async function InputHarianPage(
   // detail, bukan lewat halaman input harian biasa ini — supaya baseline tidak
   // kelewat tidak sengaja.
   const hari1 = balita.catatanHarian.find((c) => c.hariKe === 1);
-  if (hari1 && hari1.statusInput !== "TERISI") {
+  if (!hari1 || hari1.statusInput !== "TERISI") {
     redirect(`/kader/balita/${balita.id}`);
   }
 

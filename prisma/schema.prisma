@@ -58,7 +58,7 @@ model Balita {
 
   kaderId      String
   status       String   @default("AKTIF") // AKTIF | SELESAI | DROPOUT
-  tanggalMulai DateTime @default(now())
+  tanggalMulai DateTime? // null = penelitian belum dimulai (diisi saat tanggal Hari ke-1 dipilih di kalender)
   createdAt    DateTime @default(now())
 
   kader                 User                   @relation("KaderBalita", fields: [kaderId], references: [id])

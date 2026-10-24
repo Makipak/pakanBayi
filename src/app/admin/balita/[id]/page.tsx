@@ -11,8 +11,7 @@ import { KalenderStudi } from "@/components/KalenderStudi";
 import { CatatanHarianForm } from "@/components/CatatanHarianForm";
 import { BalitaStatusForm } from "@/components/BalitaStatusForm";
 import { BalitaEditForm } from "@/components/BalitaEditForm";
-import { TanggalMulaiForm } from "@/components/TanggalMulaiForm";
-import { pilihHari, sudahTiba, ymdWib } from "@/lib/data";
+import { infoKalender, pilihHari, sudahTiba, ymdWib } from "@/lib/data";
 
 export default async function AdminBalitaDetailPage(
   props: PageProps<"/admin/balita/[id]">
@@ -48,6 +47,7 @@ export default async function AdminBalitaDetailPage(
   const terisi = balita.catatanHarian.filter((c) => c.statusInput === "TERISI");
   const rate = complianceRate(terisi.length);
   const hariDipilih = pilihHari(balita.catatanHarian, sp.hari);
+  const belumMulai = balita.catatanHarian.length === 0;
   const beratTerakhir = [...terisi].reverse()[0]?.beratBadan ?? null;
   const tinggiTerakhir = [...terisi].reverse()[0]?.tinggiBadan ?? null;
   const deltaBB = delta(beratTerakhir, balita.beratBadanAwal);
@@ -98,16 +98,14 @@ export default async function AdminBalitaDetailPage(
       />
 
       <KalenderStudi
-        catatan={balita.catatanHarian}
+        balitaId={balita.id}
+        hari={infoKalender(balita.catatanHarian)}
+        todayYmd={ymdWib(new Date())}
         terpilih={hariDipilih?.hariKe}
-        hrefHari={balita.status === "AKTIF" ? (n) => `/admin/balita/${balita.id}?hari=${n}#input-harian` : undefined}
-        aksi={
-          <TanggalMulaiForm
-            balitaId={balita.id}
-            defaultYmd={ymdWib(balita.catatanHarian[0]?.tanggal ?? balita.tanggalMulai)}
-            jumlahTerisi={terisi.length}
-          />
-        }
+        boleh={balita.status === "AKTIF"}
+        labHari={Object.values(HARI_LAB)}
+        jumlahTerisi={terisi.length}
+        hrefTemplate={balita.status === "AKTIF" ? `/admin/balita/${balita.id}?hari={n}#input-harian` : undefined}
       />
 
       {adaDataIdentitas && (
@@ -181,6 +179,14 @@ export default async function AdminBalitaDetailPage(
         </Card>
       )}
 
+      {belumMulai ? (
+        <Card>
+          <EmptyState>
+            Penelitian belum dimulai. Pilih tanggal Hari ke-1 di kalender di atas untuk mulai mengisi data.
+          </EmptyState>
+        </Card>
+      ) : (
+        <>
       <Card>
         <h2 className="mb-3 font-medium text-slate-900">Tren Berat Badan</h2>
         {terisi.length > 0 ? (
@@ -291,6 +297,8 @@ export default async function AdminBalitaDetailPage(
           </div>
         )}
       </Card>
+        </>
+      )}
     </div>
   );
 }

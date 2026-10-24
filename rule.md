@@ -93,10 +93,13 @@ sekarang aturannya **"tidak boleh sebelum harinya tiba"**:
   (balita miliknya) maupun Admin. Hari yang belum tiba tidak bisa diisi (input harian, onboarding,
   maupun hasil lab). Ditegakkan di UI dan di server (`submitCatatanHarian`, `submitHariPertama`,
   `submitHasilLab` memakai `sudahTiba()` di `src/lib/data.ts`).
-- **Kalender Studi** di halaman detail balita menampilkan tanggal tiap hari ke-1…28. Klik hari yang
-  sudah tiba untuk mengisinya (`?hari=N`). Tanggal Hari ke-1 bebas ditentukan (default tanggal
-  pendaftaran) oleh Admin atau Kader pemilik balita; Hari ke-2…28 mengikuti berurutan. Mengubahnya
+- **Kalender Penelitian** di halaman detail balita adalah kalender bulanan sungguhan. Balita baru
+  **belum punya tanggal mulai** (`tanggalMulai = null`, belum ada baris `CatatanHarian`): kalender hanya
+  tampil dan bagian data/input disembunyikan. **Tanggal yang diklik (lalu dikonfirmasi) menjadi Hari
+  ke-1 penelitian**; saat itu 28 baris hari dibuat dan Hari ke-2…28 mengikuti berurutan. Tanggal bebas
+  (tidak harus hari ini). Yang boleh menentukan: Admin atau Kader pemilik balita. "Ubah tanggal mulai"
   hanya menggeser tanggal — isian tetap menempel pada nomor harinya.
+- Setelah dimulai, klik hari yang sudah tiba (hari ini atau terlewat) untuk mengisinya (`?hari=N`).
 - Perbandingan "sudah tiba" dilakukan per **tanggal kalender WIB**, bukan zona waktu server.
 - **Baseline** tetap lewat alur onboarding (§8) untuk Kader; Admin bisa mengisi Baseline & Endline
   lewat form lab di detail balita begitu harinya tiba.

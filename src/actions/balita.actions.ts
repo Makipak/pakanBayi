@@ -39,7 +39,7 @@ export async function createBalita(formData: FormData): Promise<ActionResult> {
       return { ok: false, error: "Kader penanggung jawab tidak valid" };
     }
 
-    const balita = await prisma.balita.create({
+    await prisma.balita.create({
       data: {
         nama: data.nama,
         usiaBulan: data.usiaBulan,
@@ -51,19 +51,8 @@ export async function createBalita(formData: FormData): Promise<ActionResult> {
       },
     });
 
-    // Generate 28 baris CatatanHarian kosong — lihat rule.md §3
-    const mulaiYmd = ymdWib(balita.tanggalMulai);
-    const rows = Array.from({ length: DURASI_STUDI_HARI }, (_, day) => {
-      const tanggal = tanggalStudi(mulaiYmd, day + 1);
-      return {
-        balitaId: balita.id,
-        tanggal,
-        hariKe: day + 1,
-        statusInput: "TIDAK_TERISI" as const,
-      };
-    });
-    await prisma.catatanHarian.createMany({ data: rows });
-
+    // Baris 28 hari CatatanHarian baru dibuat saat tanggal Hari ke-1 dipilih di kalender
+    // (lihat updateTanggalMulai) — balita baru belum punya tanggal mulai penelitian.
     revalidatePath("/admin/balita");
     revalidatePath("/admin/dashboard");
     return { ok: true };
@@ -85,21 +74,34 @@ export async function updateTanggalMulai(balitaId: string, ymd: string): Promise
     }
     const existing = await prisma.balita.findUnique({
       where: { id: balitaId },
-      select: { id: true, kaderId: true },
+      select: { id: true, kaderId: true, _count: { select: { catatanHarian: true } } },
     });
     if (!existing) return { ok: false, error: "Balita tidak ditemukan" };
     if (session.user.role === "KADER" && existing.kaderId !== session.user.id) {
       return { ok: false, error: "Anda tidak punya akses ke balita ini" };
     }
 
+    const tanggalBaris = (n: number) => tanggalStudi(ymd, n);
     await prisma.$transaction([
       prisma.balita.update({ where: { id: balitaId }, data: { tanggalMulai: base } }),
-      ...Array.from({ length: DURASI_STUDI_HARI }, (_, i) =>
-        prisma.catatanHarian.updateMany({
-          where: { balitaId, hariKe: i + 1 },
-          data: { tanggal: tanggalStudi(ymd, i + 1) },
-        })
-      ),
+      ...(existing._count.catatanHarian === 0
+        ? [
+            // Pertama kali dipilih: buat 28 baris hari (kosong).
+            prisma.catatanHarian.createMany({
+              data: Array.from({ length: DURASI_STUDI_HARI }, (_, i) => ({
+                balitaId,
+                tanggal: tanggalBaris(i + 1),
+                hariKe: i + 1,
+                statusInput: "TIDAK_TERISI" as const,
+              })),
+            }),
+          ]
+        : Array.from({ length: DURASI_STUDI_HARI }, (_, i) =>
+            prisma.catatanHarian.updateMany({
+              where: { balitaId, hariKe: i + 1 },
+              data: { tanggal: tanggalBaris(i + 1) },
+            })
+          )),
     ]);
 
     revalidatePath(`/admin/balita/${balitaId}`);

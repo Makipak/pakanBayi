@@ -6,11 +6,10 @@ import { Badge, Button, Card, EmptyState } from "@/components/ui";
 import { TrendChart } from "@/components/TrendChart";
 import { IconBack } from "@/components/icons";
 import { complianceRate, delta, formatTanggal } from "@/lib/utils";
-import { sudahTiba, todayCatatan, ymdWib } from "@/lib/data";
+import { infoKalender, sudahTiba, todayCatatan, ymdWib } from "@/lib/data";
 import { DURASI_STUDI_HARI, HARI_LAB, LABEL_LAB, TIPE_LAB } from "@/lib/constants";
 import { HasilLabForm } from "@/components/HasilLabForm";
 import { KalenderStudi } from "@/components/KalenderStudi";
-import { TanggalMulaiForm } from "@/components/TanggalMulaiForm";
 import { OnboardingForm } from "@/components/OnboardingForm";
 
 export default async function KaderBalitaDetailPage(
@@ -78,24 +77,26 @@ export default async function KaderBalitaDetailPage(
       </div>
 
       <KalenderStudi
-        catatan={balita.catatanHarian}
-        hrefHari={
+        balitaId={balita.id}
+        hari={infoKalender(balita.catatanHarian)}
+        todayYmd={ymdWib(new Date())}
+        boleh={balita.status === "AKTIF"}
+        labHari={Object.values(HARI_LAB)}
+        jumlahTerisi={terisi.length}
+        hrefTemplate={
           balita.status === "AKTIF" && !day1BelumSelesai
-            ? (n) => `/kader/balita/${balita.id}/input?hari=${n}#input-harian`
+            ? `/kader/balita/${balita.id}/input?hari={n}#input-harian`
             : undefined
-        }
-        aksi={
-          balita.status === "AKTIF" ? (
-            <TanggalMulaiForm
-              balitaId={balita.id}
-              defaultYmd={ymdWib(balita.catatanHarian[0]?.tanggal ?? balita.tanggalMulai)}
-              jumlahTerisi={terisi.length}
-            />
-          ) : undefined
         }
       />
 
-      {balita.status === "AKTIF" && day1BelumSelesai && hari1 ? (
+      {balita.catatanHarian.length === 0 ? (
+        <Card>
+          <EmptyState>
+            Penelitian belum dimulai. Pilih tanggal Hari ke-1 di kalender di atas untuk mulai mengisi data.
+          </EmptyState>
+        </Card>
+      ) : balita.status === "AKTIF" && day1BelumSelesai && hari1 ? (
         <Card>
           <OnboardingForm balitaId={balita.id} catatanHarianId={hari1.id} />
         </Card>

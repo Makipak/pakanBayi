@@ -58,3 +58,12 @@ export function pilihHari<T extends { hariKe: number; tanggal: Date; statusInput
   const urut = [...rows].sort((a, b) => a.hariKe - b.hariKe);
   return urut.find((r) => sudahTiba(r.tanggal) && r.statusInput !== "TERISI") ?? urut[0];
 }
+
+/** Bentuk data ringkas untuk komponen KalenderStudi (aman dikirim ke client component). */
+export function infoKalender(rows: { hariKe: number; tanggal: Date; statusInput: string }[]) {
+  return rows.map((r) => ({
+    hariKe: r.hariKe,
+    ymd: ymdWib(r.tanggal),
+    terisi: r.statusInput === "TERISI",
+  }));
+}
