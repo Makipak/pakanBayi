@@ -279,19 +279,31 @@ export default async function AdminBalitaDetailPage(
           <div className="mt-4 space-y-4 border-t border-slate-100 pt-4">
             {TIPE_LAB.map((t) => {
               const target = balita.catatanHarian.find((c) => c.hariKe === HARI_LAB[t]);
-              return target && sudahTiba(target.tanggal) ? (
+              const ada = balita.hasilLab.find((h) => h.tipe === t);
+              if (!target || !sudahTiba(target.tanggal)) {
+                return (
+                  <p key={t} className="text-xs text-slate-400">
+                    Form {LABEL_LAB[t]} terbuka mulai Hari ke-{HARI_LAB[t]}
+                    {target ? ` (${formatTanggal(target.tanggal)})` : ""}.
+                  </p>
+                );
+              }
+              // Baseline dikunci setelah terisi pertama kali; hanya SPV Kader yang bisa mengoreksi.
+              if (t === "BASELINE" && ada && false) {
+                return (
+                  <p key={t} className="text-xs text-slate-500">
+                    Terkunci: {LABEL_LAB[t]} sudah diisi. Perubahan hanya bisa dilakukan oleh SPV Kader.
+                  </p>
+                );
+              }
+              return (
                 <HasilLabForm
                   key={t}
                   balitaId={balita.id}
                   tipe={t}
-                  label={LABEL_LAB[t]}
-                  sudahDiisi={!!balita.hasilLab.find((h) => h.tipe === t)}
+                  label={LABEL_LAB[t] + (t === "BASELINE" && ada ? " — koreksi SPV Kader" : "")}
+                  sudahDiisi={!!ada}
                 />
-              ) : (
-                <p key={t} className="text-xs text-slate-400">
-                  Form {LABEL_LAB[t]} terbuka mulai Hari ke-{HARI_LAB[t]}
-                  {target ? ` (${formatTanggal(target.tanggal)})` : ""}. Hari yang terlewat tetap bisa diisi belakangan.
-                </p>
               );
             })}
           </div>

@@ -42,6 +42,17 @@ export async function submitHasilLab(formData: FormData): Promise<ActionResult> 
       };
     }
 
+    // Baseline dikunci setelah terisi pertama kali; hanya SPV Kader (admin) yang boleh mengoreksi.
+    if (data.tipe === "BASELINE" && session.user.role === "KADER") {
+      const sudahAda = await prisma.hasilLab.findUnique({
+        where: { balitaId_tipe: { balitaId: data.balitaId, tipe: "BASELINE" } },
+        select: { id: true },
+      });
+      if (sudahAda) {
+        return { ok: false, error: "Hasil lab Baseline sudah terkunci. Hubungi SPV Kader untuk koreksi." };
+      }
+    }
+
     const outOfRange = data.hbValue < HB_MIN_WAJAR || data.hbValue > HB_MAX_WAJAR;
     if (outOfRange && !data.confirmOutOfRange) {
       return {

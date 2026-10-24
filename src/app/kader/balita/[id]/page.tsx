@@ -10,7 +10,6 @@ import { infoKalender, sudahTiba, todayCatatan, ymdWib } from "@/lib/data";
 import { DURASI_STUDI_HARI, HARI_LAB, LABEL_LAB, TIPE_LAB } from "@/lib/constants";
 import { HasilLabForm } from "@/components/HasilLabForm";
 import { KalenderStudi } from "@/components/KalenderStudi";
-import { OnboardingForm } from "@/components/OnboardingForm";
 
 export default async function KaderBalitaDetailPage(
   props: PageProps<"/kader/balita/[id]">
@@ -48,15 +47,6 @@ export default async function KaderBalitaDetailPage(
   const baseline = balita.hasilLab.find((h) => h.tipe === "BASELINE");
   const endline = balita.hasilLab.find((h) => h.tipe === "ENDLINE");
 
-  // Hari ke-1 (onboarding): input harian + Baseline digabung satu form (lihat
-  // OnboardingForm) — selama ini belum pernah diisi, halaman detail balita
-  // menampilkan form itu saja, bukan dashboard di bawah ini.
-  const hari1 = balita.catatanHarian.find((c) => c.hariKe === 1);
-  const day1BelumSelesai = !hari1 || hari1.statusInput !== "TERISI" || !baseline;
-
-  // BASELINE ditangani lewat OnboardingForm; form lab untuk kader hanya Endline.
-  const tipeLabKader = TIPE_LAB.filter((t) => t !== "BASELINE");
-
   const bbChartData = balita.catatanHarian.map((c) => ({ hariKe: c.hariKe, nilai: c.beratBadan }));
   const tbChartData = balita.catatanHarian.map((c) => ({ hariKe: c.hariKe, nilai: c.tinggiBadan }));
 
@@ -84,11 +74,7 @@ export default async function KaderBalitaDetailPage(
         labHari={Object.values(HARI_LAB)}
         jumlahTerisi={terisi.length}
         hrefTemplate={
-          balita.status === "AKTIF"
-            ? day1BelumSelesai
-              ? `/kader/balita/${balita.id}#onboarding` // hari-1 wajib diselesaikan dulu lewat form onboarding
-              : `/kader/balita/${balita.id}/input?hari={n}#input-harian`
-            : undefined
+          balita.status === "AKTIF" ? `/kader/balita/${balita.id}/input?hari={n}#input-harian` : undefined
         }
       />
 
@@ -97,10 +83,6 @@ export default async function KaderBalitaDetailPage(
           <EmptyState>
             Penelitian belum dimulai. Pilih tanggal Hari ke-1 di kalender di atas untuk mulai mengisi data.
           </EmptyState>
-        </Card>
-      ) : balita.status === "AKTIF" && day1BelumSelesai && hari1 ? (
-        <Card id="onboarding">
-          <OnboardingForm balitaId={balita.id} catatanHarianId={hari1.id} />
         </Card>
       ) : (
         <>
@@ -193,21 +175,33 @@ export default async function KaderBalitaDetailPage(
         </div>
         {balita.status === "AKTIF" && (
           <div className="mt-4 space-y-4 border-t border-slate-100 pt-4">
-            {tipeLabKader.map((t) => {
+            {TIPE_LAB.map((t) => {
               const target = balita.catatanHarian.find((c) => c.hariKe === HARI_LAB[t]);
-              return target && sudahTiba(target.tanggal) ? (
+              const ada = balita.hasilLab.find((h) => h.tipe === t);
+              if (!target || !sudahTiba(target.tanggal)) {
+                return (
+                  <p key={t} className="text-xs text-slate-400">
+                    Form {LABEL_LAB[t]} terbuka mulai Hari ke-{HARI_LAB[t]}
+                    {target ? ` (${formatTanggal(target.tanggal)})` : ""}.
+                  </p>
+                );
+              }
+              // Baseline dikunci setelah terisi pertama kali; hanya SPV Kader yang bisa mengoreksi.
+              if (t === "BASELINE" && ada && true) {
+                return (
+                  <p key={t} className="text-xs text-slate-500">
+                    Terkunci: {LABEL_LAB[t]} sudah diisi. Perubahan hanya bisa dilakukan oleh SPV Kader.
+                  </p>
+                );
+              }
+              return (
                 <HasilLabForm
                   key={t}
                   balitaId={balita.id}
                   tipe={t}
-                  label={LABEL_LAB[t]}
-                  sudahDiisi={!!balita.hasilLab.find((h) => h.tipe === t)}
+                  label={LABEL_LAB[t] + (t === "BASELINE" && ada ? " — koreksi SPV Kader" : "")}
+                  sudahDiisi={!!ada}
                 />
-              ) : (
-                <p key={t} className="text-xs text-slate-400">
-                  Form {LABEL_LAB[t]} terbuka mulai Hari ke-{HARI_LAB[t]}
-                  {target ? ` (${formatTanggal(target.tanggal)})` : ""}. Hari yang terlewat tetap bisa diisi belakangan.
-                </p>
               );
             })}
           </div>

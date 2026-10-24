@@ -65,8 +65,7 @@ akun kader (edit ditambahkan setelah rencana v1 — sebelumnya cuma tambah/hapus
 - CRUD akun kader oleh Admin (tambah, **edit**, hapus). Form hanya berisi username & password (tanpa nama lengkap)
 - Input harian oleh Kader: berat badan, tinggi badan, konsumsi nugget (gram), dan asupan
   karbohidrat/protein/lemak (gram)
-- **Onboarding Hari ke-1**: input harian pertama + Hasil Lab Baseline digabung jadi satu form/satu
-  submit, supaya kader tidak perlu bolak-balik halaman saat balita baru mulai ikut studi
+- **Hasil Lab**: Baseline terkunci setelah terisi (koreksi hanya Admin), Endline fokus di Hari ke-28; hari studi boleh diisi urutan bebas
 - **Kalender Penelitian** di detail balita: kalender bulanan; tanggal yang diklik menjadi Hari ke-1 penelitian (balita baru belum punya tanggal mulai), lalu klik hari yang sudah tiba untuk mengisi (hari terlewat boleh diisi belakangan oleh Kader/Admin)
 - Input hasil lab oleh Kader/Admin: Hb, Zinc — di 2 checkpoint (Baseline/Endline),
   baru bisa diisi setelah hari studinya tiba; hari yang terlewat boleh diisi belakangan (lihat §7
@@ -108,13 +107,12 @@ read-only di halaman detail admin.
 | **Tinggi badan** | Harian (28x) | Ditambahkan — semula direncanakan sekali di awal saja |
 | Konsumsi nugget (gram) | Harian (28x) | Target 50gr/hari (2 biji × 25gr) |
 | **Karbohidrat, protein, lemak** (gram) | Harian (28x), opsional | Ditambahkan, sejalan dengan input konsumsi nugget; boleh dikosongkan |
-| **Hb, Zinc** (Fe dihapus 24 Okt 2026) | **2x**: Hari-1 (Baseline), Hari-28 (Endline) | Sempat 3x (dengan Pertengahan hari-14), dikembalikan ke 2x pada 19 Okt 2026; Fe ditambahkan sebagai indikator ketiga selain Hb & Zinc. Baseline sekarang digabung dengan input harian pertama (onboarding) |
+| **Hb, Zinc** (Fe dihapus 24 Okt 2026) | **2x**: Hari-1 (Baseline), Hari-28 (Endline) | Sempat 3x (dengan Pertengahan hari-14), dikembalikan ke 2x pada 19 Okt 2026; Fe ditambahkan sebagai indikator ketiga selain Hb & Zinc. Baseline terkunci setelah terisi |
 
 ## 7. Fitur UX Baru (tidak ada di rencana awal)
 
 - ~~Dropdown wilayah berjenjang~~ — **dihapus** bersama field wilayah (18 Okt 2026).
-- **Onboarding hari-1 gabungan**: mengurangi jumlah langkah kader saat balita baru mulai ikut
-  studi (satu form, bukan dua form terpisah di dua halaman).
+- ~~Onboarding hari-1 gabungan~~ — dihapus (24 Okt 2026); diganti urutan bebas + kunci Baseline.
 - **Kunci hari untuk hasil lab**: mencegah data Hb/Zinc/Fe ke-input atau ke-ubah tidak sengaja di
   hari yang salah.
 - **Label "SPV Kader"** menggantikan "Admin" di seluruh tampilan (bukan perubahan struktur akses).
@@ -133,7 +131,7 @@ read-only di halaman detail admin.
 ## 9. Success Metrics (untuk sistem, bukan untuk hasil studi gizinya)
 
 - Kader bisa input data harian dalam <1 menit per balita dari HP.
-- Onboarding balita baru (hari-1 + Baseline) selesai dalam satu form tanpa pindah halaman.
+- Baseline & data harian bisa diisi tanpa urutan wajib; Baseline aman dari perubahan tidak sengaja.
 - Admin bisa export data lengkap ke CSV dalam 1 klik.
 - Tidak ada data ganda/konflik antar-kader (data terisolasi per kader via role, ditegakkan di
   level Server Action).

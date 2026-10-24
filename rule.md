@@ -30,7 +30,6 @@
 | Input `CatatanHarian` (harian) | ✅ (semua balita) | ✅ (hanya balita miliknya) |
 | Edit `CatatanHarian` yang sudah diisi | ✅ | ✅ (hanya milik sendiri) |
 | Input `HasilLab` (Baseline/Endline) | ✅ (semua balita) | ✅ (hanya balita miliknya) — **baru bisa diisi setelah harinya tiba, hari terlewat boleh diisi belakangan — lihat §7** |
-| Isi form onboarding hari-1 (`submitHariPertama`) | ✅ | ✅ (hanya balita miliknya) |
 | Tambah akun kader | ✅ | ❌ |
 | **Update akun kader** (username/password) | ✅ | ❌ |
 | Hapus akun kader (kalau tidak ada balita aktif) | ✅ | ❌ |
@@ -47,7 +46,7 @@ berdasarkan `kaderId = session.user.id` di level query database, bukan hanya dis
 | `beratBadan` | Wajib angka positif. Rentang wajar 3–30 kg (`BERAT_BADAN_MIN_WAJAR`/`MAX_WAJAR`). Di luar rentang → warning, tetap bisa disimpan dengan centang konfirmasi (bukan hard block). |
 | `tinggiBadan` | **Baru** — wajib angka positif, dicatat harian (bukan hanya sekali di awal seperti draft v1). |
 | `konsumsiNuggetGram` | 0–50 gram (`TARGET_NUGGET_GRAM`). |
-| `energiKkal`, `karbohidratGram`, `proteinGram`, `lemakGram` | **Opsional** (sejak 19 Okt 2026) — boleh dikosongkan (disimpan `null`); kalau diisi harus angka ≥ 0. Berlaku di input harian dan onboarding hari-1. |
+| `energiKkal`, `karbohidratGram`, `proteinGram`, `lemakGram` | **Opsional** (sejak 19 Okt 2026) — boleh dikosongkan (disimpan `null`); kalau diisi harus angka ≥ 0. Berlaku di input harian. |
 | `hariKe` | 1–28, harus sesuai `tanggalMulai` balita. |
 | `tanggal` | Tidak boleh di masa depan; hari yang terlewat boleh diisi belakangan. |
 
@@ -92,8 +91,8 @@ di `src/lib/constants.ts`. Sebelumnya form hanya terbuka tepat di hari targetnya
 sekarang aturannya **"tidak boleh sebelum harinya tiba"**:
 
 - **Hari studi yang sudah tiba (hari ini atau terlewat) boleh diisi belakangan** — oleh Kader
-  (balita miliknya) maupun Admin. Hari yang belum tiba tidak bisa diisi (input harian, onboarding,
-  maupun hasil lab). Ditegakkan di UI dan di server (`submitCatatanHarian`, `submitHariPertama`,
+  (balita miliknya) maupun Admin. Hari yang belum tiba tidak bisa diisi (input harian
+  maupun hasil lab). Ditegakkan di UI dan di server (`submitCatatanHarian`,
   `submitHasilLab` memakai `sudahTiba()` di `src/lib/data.ts`).
 - **Kalender Penelitian** di halaman detail balita adalah kalender bulanan sungguhan. Balita baru
   **belum punya tanggal mulai** (`tanggalMulai = null`, belum ada baris `CatatanHarian`): kalender hanya
@@ -103,26 +102,22 @@ sekarang aturannya **"tidak boleh sebelum harinya tiba"**:
   hanya menggeser tanggal — isian tetap menempel pada nomor harinya.
 - Setelah dimulai, klik hari yang sudah tiba (hari ini atau terlewat) untuk mengisinya (`?hari=N`).
   Mengeklik tanggal **di luar** rentang 28 hari (sebelum Hari ke-1 atau sesudah Hari ke-28) menawarkan
-  tanggal itu sebagai awal penelitian yang baru (dengan konfirmasi). Kader yang onboarding hari-1-nya
-  belum selesai diarahkan ke form onboarding saat mengeklik hari.
+  tanggal itu sebagai awal penelitian yang baru (dengan konfirmasi).
 - Perbandingan "sudah tiba" dilakukan per **tanggal kalender WIB**, bukan zona waktu server.
-- **Baseline** tetap lewat alur onboarding (§8) untuk Kader; Admin bisa mengisi Baseline & Endline
-  lewat form lab di detail balita begitu harinya tiba.
+- **Baseline** dikunci setelah terisi (§8); Endline & koreksi Baseline lewat form lab di detail balita
+  begitu harinya tiba.
 - Tanggal pengukuran Endline tetap harus ≥ 28 hari setelah tanggal pengukuran Baseline (pengaman).
 
-## 8. Aturan Onboarding Hari ke-1 (baru)
+## 8. Aturan Hasil Lab Baseline & Endline (kunci Baseline)
 
-Untuk balita yang baru ditambahkan, input hari ke-1 (data harian) dan Hasil Lab Baseline
-**digabung jadi satu form** (`OnboardingForm` → `submitHariPertama`), bukan dua form terpisah:
+Tidak ada lagi form onboarding gabungan dan **tidak ada urutan wajib**: Hari ke-1 diisi dengan
+form harian biasa, dan semua hari yang sudah tiba boleh diisi dalam urutan apa pun.
 
-- Form gabungan ini yang tampil di halaman detail balita **selama** `CatatanHarian` hari ke-1
-  belum `TERISI` **atau** `HasilLab` `BASELINE` belum ada.
-- Begitu disubmit (satu tombol, satu Server Action, dua tabel diupdate sekaligus), halaman
-  otomatis berganti ke tampilan dashboard biasa (chart tren, ringkasan, dst.) — sama seperti
-  yang dilihat kader untuk hari ke-2 dan seterusnya.
-- Halaman `/kader/balita/[id]/input` (input harian biasa) **redirect balik** ke halaman detail
-  kalau hari ke-1 belum selesai — supaya kader tidak bisa mengisi data harian tanpa Baseline
-  lewat jalan pintas.
+- **Baseline (Hb & Zinc)**: form terbuka begitu Hari ke-1 tiba. Setelah **terisi pertama kali ia
+  terkunci** untuk Kader (UI menampilkan teks "Terkunci"; server menolak di `submitHasilLab`).
+  Hanya Admin (SPV Kader) yang bisa mengoreksi.
+- **Endline (Hb & Zinc)**: form terbuka begitu Hari ke-28 tiba; ini fokus pengisian hari terakhir.
+- Bila Baseline belum diisi, halaman menampilkan pengingat; Endline tetap boleh diisi.
 
 ## 9. Aturan Balita Dropout
 

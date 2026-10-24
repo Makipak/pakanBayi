@@ -80,7 +80,7 @@ sequenceDiagram
 **Prinsip scoping (tidak berubah, defense in depth):** setiap Server Action untuk role Kader
 selalu memfilter berdasarkan `kaderId = session.user.id` di level query — bukan hanya
 disembunyikan di UI. Ini dicek eksplisit misalnya di `getScopedBalitaOrThrow` (`catatan-harian.actions.ts`)
-dan di `submitHasilLab`/`submitHariPertama`.
+dan di `submitHasilLab`.
 
 **Label UI "SPV Kader":** role `ADMIN` di database & di URL (`/admin/*`) tidak diganti — hanya
 teks yang ditampilkan ke user (mis. judul halaman, pesan error `requireAdmin()`) yang memakai
@@ -115,7 +115,7 @@ balita-feed/                          # nama folder/package tidak diganti (lihat
 │   │   │   ├── layout.tsx
 │   │   │   ├── dashboard/page.tsx   # list balita miliknya
 │   │   │   └── balita/[id]/
-│   │   │       ├── page.tsx         # detail + onboarding form (hari-1) / dashboard
+│   │   │       ├── page.tsx         # detail + kalender / dashboard
 │   │   │       └── input/page.tsx   # input harian (hari ke-2 dst.)
 │   │   └── api/
 │   │       ├── auth/[...nextauth]/route.ts
@@ -128,7 +128,6 @@ balita-feed/                          # nama folder/package tidak diganti (lihat
 │   │   │                             # createKader, updateKader, deleteKader
 │   │   ├── catatan-harian.actions.ts
 │   │   ├── hasil-lab.actions.ts     # lab: baru bisa diisi setelah harinya tiba (rule.md §7)
-│   │   ├── onboarding.actions.ts    # submitHariPertama — gabung harian + Baseline
 │   │   └── signout.action.ts
 │   ├── lib/
 │   │   ├── prisma.ts
@@ -142,7 +141,6 @@ balita-feed/                          # nama folder/package tidak diganti (lihat
 │   │   ├── BalitaForm.tsx           # form Tambah Balita (6 field, memakai BalitaFields)
 │   │   ├── BalitaStatusForm.tsx
 │   │   ├── CatatanHarianForm.tsx    # input harian (hari ke-2 dst.)
-│   │   ├── OnboardingForm.tsx       # input hari-1 gabungan (harian + Baseline)
 │   │   ├── HasilLabForm.tsx         # 1 tipe lab per render
 │   │   ├── KaderForm.tsx / KaderRow.tsx / KaderEditForm.tsx / KaderDeleteButton.tsx
 │   │   ├── BalitaFields.tsx         # 6 field form balita (dipakai Tambah & Edit)
@@ -164,32 +162,28 @@ balita-feed/                          # nama folder/package tidak diganti (lihat
 > diganti jadi folder biasa `admin/` dan `kader/` sehingga URL-nya beda (`/admin/balita/[id]` vs
 > `/kader/balita/[id]`).
 
-## 5. Data Flow: Input Hari Ke-1 (Onboarding) — kader
+## 5. Data Flow: Input Harian (hari mana pun yang sudah tiba) — kader
 
 ```mermaid
 graph LR
-    A[Kader buka detail balita baru] --> B{Hari-1 sudah TERISI\ndan Baseline sudah ada?}
-    B -->|Belum| C[Tampilkan OnboardingForm:\nharian + Hasil Lab Baseline\ndalam satu form]
-    C --> D[Submit -> submitHariPertama]
-    D --> E{Validasi Zod +\nwarning rentang wajar\nberat & Hb}
-    E -->|Valid| F[Update CatatanHarian hari-1\n+ upsert HasilLab BASELINE\ndalam satu action]
-    E -->|Invalid/di luar rentang| G[Tampilkan error/\nminta konfirmasi, tidak simpan]
-    F --> H[router.refresh -\nhalaman otomatis ganti\nke tampilan dashboard]
-    B -->|Sudah| H
-```
-
-## 6. Data Flow: Input Harian (Hari ke-2 dst.) — kader
-
-```mermaid
-graph LR
-    A[Kader buka halaman /kader/balita/id/input] --> B{Hari-1 sudah selesai?}
-    B -->|Belum| C[Redirect balik ke halaman detail\n- wajib lewat OnboardingForm dulu]
-    B -->|Sudah| D[Isi form: berat, tinggi,\nnugget, karbo/protein/lemak]
+    A[Kader klik hari di kalender\n/kader/balita/id/input?hari=N] --> B{Hari sudah tiba?}
+    B -->|Belum| C[Tampilkan pesan belum tiba]
+    B -->|Sudah| D[Isi form: berat, tinggi,\nnugget, energi/karbo/protein/lemak]
     D --> E[Submit -> submitCatatanHarian]
-    E --> F{Validasi Zod +\nwarning berat di luar rentang wajar}
+    E --> F{Validasi Zod}
     F -->|Valid| G[Update CatatanHarian:\nstatusInput = TERISI]
     F -->|Invalid| H[Tampilkan error, tidak simpan]
-    G --> I[Redirect ke halaman detail balita]
+```
+
+## 6. Data Flow: Hasil Lab (Baseline terkunci)
+
+```mermaid
+graph LR
+    A[submitHasilLab] --> B{Hari target tiba?}
+    B -->|Belum| X[Tolak]
+    B -->|Sudah| C{Baseline + role KADER\n+ sudah ada?}
+    C -->|Ya| Y[Tolak: terkunci]
+    C -->|Tidak| D[Upsert HasilLab]
 ```
 
 ## 7. Fitur Dihapus: Dropdown Wilayah Administratif
