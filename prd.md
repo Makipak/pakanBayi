@@ -92,7 +92,7 @@ akun kader (edit ditambahkan setelah rencana v1 — sebelumnya cuma tambah/hapus
 
 Hanya 6 field, semuanya wajib:
 
-- Nama, usia (bulan, 0–59), jenis kelamin, tinggi badan awal (cm), berat badan awal (kg), kader
+- Nama, usia (bulan, 0–80), jenis kelamin, tinggi badan awal (cm), berat badan awal (kg), kader
   penanggung jawab
 
 **Dihapus dari form (18 Okt 2026):** tanggal lahir, nama ibu, alamat, no. telp, wilayah administratif

@@ -50,11 +50,11 @@ export function HasilLabForm({
       <div className="grid grid-cols-2 gap-3">
         <div>
           <Label htmlFor="hbValue">Hb (g/dL)</Label>
-          <Input id="hbValue" name="hbValue" type="number" step="0.1" min="0" required />
+          <Input id="hbValue" name="hbValue" type="text" required inputMode="decimal" />
         </div>
         <div>
           <Label htmlFor="zincValue">Zinc (µg/dL)</Label>
-          <Input id="zincValue" name="zincValue" type="number" step="0.1" min="0" required />
+          <Input id="zincValue" name="zincValue" type="text" required inputMode="decimal" />
         </div>
       </div>
       <label className="flex items-center gap-2 text-xs text-slate-500">

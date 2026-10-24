@@ -33,9 +33,7 @@ export function BalitaFields({
         <Input
           id="usiaBulan"
           name="usiaBulan"
-          type="number"
-          min="0"
-          max="59"
+          type="text"
           required
           defaultValue={v(defaults.usiaBulan)}
         />
@@ -55,8 +53,7 @@ export function BalitaFields({
         <Input
           id="tinggiBadanAwal"
           name="tinggiBadanAwal"
-          type="number"
-          step="0.1"
+          type="text"
           required
           defaultValue={v(defaults.tinggiBadanAwal)}
         />
@@ -66,8 +63,7 @@ export function BalitaFields({
         <Input
           id="beratBadanAwal"
           name="beratBadanAwal"
-          type="number"
-          step="0.1"
+          type="text"
           required
           defaultValue={v(defaults.beratBadanAwal)}
         />

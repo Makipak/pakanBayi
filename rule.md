@@ -1,5 +1,7 @@
 # Rule — NUTRIMO (Nuget Nutrition Monitoring): Business Rules & Validasi
 
+> **Update 25 Okt 2026:** **semua input angka boleh desimal** — koma ("12,5") dan titik ("12.5") sama-sama diterima (kolom teks dengan keypad desimal; koma dinormalisasi di server, lihat `angka()` di `validators.ts`).
+
 > **Update 24 Okt 2026:** (1) halaman detail balita punya **Kalender Studi** (klik hari untuk mengisi, hari terlewat boleh diisi; lihat §7) (hari ke-1…28 beserta tanggalnya) di atas
 > data harian & hasil lab; admin menentukan tanggal Hari ke-1, tanggal berikutnya mengikuti otomatis. Tanggal dihitung
 > per hari kalender WIB. (2) **Fe dihapus** dari input hasil lab (hanya Hb & Zinc). (3) Input harian menambah
@@ -62,7 +64,7 @@ berdasarkan `kaderId = session.user.id` di level query database, bukan hanya dis
 
 | Field | Rule |
 |---|---|
-| `usiaBulan` | 0–59 bulan. |
+| `usiaBulan` | 0–80 bulan, boleh desimal (mis. 24,5). Batas atas dinaikkan dari 59 ke 80 pada 25 Okt 2026. |
 | `jenisKelamin` | `L` \| `P`. |
 | `tinggiBadanAwal`, `beratBadanAwal` | Wajib diisi, angka positif. |
 | `nama` | Wajib diisi (spasi di awal/akhir dibuang). |
@@ -100,6 +102,9 @@ sekarang aturannya **"tidak boleh sebelum harinya tiba"**:
   (tidak harus hari ini). Yang boleh menentukan: Admin atau Kader pemilik balita. "Ubah tanggal mulai"
   hanya menggeser tanggal — isian tetap menempel pada nomor harinya.
 - Setelah dimulai, klik hari yang sudah tiba (hari ini atau terlewat) untuk mengisinya (`?hari=N`).
+  Mengeklik tanggal **di luar** rentang 28 hari (sebelum Hari ke-1 atau sesudah Hari ke-28) menawarkan
+  tanggal itu sebagai awal penelitian yang baru (dengan konfirmasi). Kader yang onboarding hari-1-nya
+  belum selesai diarahkan ke form onboarding saat mengeklik hari.
 - Perbandingan "sudah tiba" dilakukan per **tanggal kalender WIB**, bukan zona waktu server.
 - **Baseline** tetap lewat alur onboarding (§8) untuk Kader; Admin bisa mengisi Baseline & Endline
   lewat form lab di detail balita begitu harinya tiba.

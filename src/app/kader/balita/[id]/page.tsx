@@ -84,8 +84,10 @@ export default async function KaderBalitaDetailPage(
         labHari={Object.values(HARI_LAB)}
         jumlahTerisi={terisi.length}
         hrefTemplate={
-          balita.status === "AKTIF" && !day1BelumSelesai
-            ? `/kader/balita/${balita.id}/input?hari={n}#input-harian`
+          balita.status === "AKTIF"
+            ? day1BelumSelesai
+              ? `/kader/balita/${balita.id}#onboarding` // hari-1 wajib diselesaikan dulu lewat form onboarding
+              : `/kader/balita/${balita.id}/input?hari={n}#input-harian`
             : undefined
         }
       />
@@ -97,7 +99,7 @@ export default async function KaderBalitaDetailPage(
           </EmptyState>
         </Card>
       ) : balita.status === "AKTIF" && day1BelumSelesai && hari1 ? (
-        <Card>
+        <Card id="onboarding">
           <OnboardingForm balitaId={balita.id} catatanHarianId={hari1.id} />
         </Card>
       ) : (

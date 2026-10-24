@@ -1,5 +1,7 @@
 # Schema — NUTRIMO (Nuget Nutrition Monitoring)
 
+> **Update 25 Okt 2026:** semua input angka boleh desimal (koma/titik); `usiaBulan` kini float.
+
 > **Update 24 Okt 2026:** (1) halaman detail balita punya **Kalender Studi** (hari ke-1…28 beserta tanggalnya) di atas
 > data harian & hasil lab; admin menentukan tanggal Hari ke-1, tanggal berikutnya mengikuti otomatis. Tanggal dihitung
 > per hari kalender WIB. (2) **Fe dihapus** dari input hasil lab (hanya Hb & Zinc). (3) Input harian menambah
@@ -45,7 +47,7 @@ erDiagram
         string id PK
         string nama
         datetime tanggalLahir "nullable"
-        int usiaBulan
+        float usiaBulan
         string jenisKelamin "L | P"
         float tinggiBadanAwal
         float beratBadanAwal
@@ -153,7 +155,7 @@ detail admin; balita baru akan bernilai `NULL`.
 | `id` | string | PK | |
 | `nama` | string | not null | |
 | `tanggalLahir` | datetime, nullable | | |
-| `usiaBulan` | int | not null | Usia saat registrasi (bulan), 0–59 |
+| `usiaBulan` | float | not null | Usia saat registrasi (bulan, boleh desimal), 0–80 |
 | `jenisKelamin` | string (`L`, `P`) | not null | |
 | `tinggiBadanAwal` | float | not null | cm — baseline delta |
 | `beratBadanAwal` | float | not null | kg — baseline delta |
@@ -298,7 +300,7 @@ model Balita {
   id              String    @id @default(cuid())
   nama            String
   tanggalLahir    DateTime?
-  usiaBulan       Int
+  usiaBulan       Float
   jenisKelamin    String
   tinggiBadanAwal Float
   beratBadanAwal  Float

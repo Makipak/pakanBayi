@@ -57,11 +57,11 @@ export function OnboardingForm({
         <div className="grid grid-cols-2 gap-3">
           <div>
             <Label htmlFor="beratBadan">Berat badan (kg)</Label>
-            <Input id="beratBadan" name="beratBadan" type="number" step="0.1" min="0" required inputMode="decimal" />
+            <Input id="beratBadan" name="beratBadan" type="text" required inputMode="decimal" />
           </div>
           <div>
             <Label htmlFor="tinggiBadan">Tinggi badan (cm)</Label>
-            <Input id="tinggiBadan" name="tinggiBadan" type="number" step="0.1" min="0" required inputMode="decimal" />
+            <Input id="tinggiBadan" name="tinggiBadan" type="text" required inputMode="decimal" />
           </div>
         </div>
         <div>
@@ -71,12 +71,9 @@ export function OnboardingForm({
           <Input
             id="konsumsiNuggetGram"
             name="konsumsiNuggetGram"
-            type="number"
-            step="1"
-            min="0"
-            max={TARGET_NUGGET_GRAM}
+            type="text"
             required
-            inputMode="numeric"
+            inputMode="decimal"
           />
         </div>
         <div>
@@ -84,19 +81,19 @@ export function OnboardingForm({
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             <div>
               <Label htmlFor="energiKkal">Energi (kkal)</Label>
-              <Input id="energiKkal" name="energiKkal" type="number" step="1" min="0" inputMode="decimal" />
+              <Input id="energiKkal" name="energiKkal" type="text" inputMode="decimal" />
             </div>
             <div>
               <Label htmlFor="karbohidratGram">Karbohidrat (g)</Label>
-              <Input id="karbohidratGram" name="karbohidratGram" type="number" step="0.1" min="0" inputMode="decimal" />
+              <Input id="karbohidratGram" name="karbohidratGram" type="text" inputMode="decimal" />
             </div>
             <div>
               <Label htmlFor="proteinGram">Protein (g)</Label>
-              <Input id="proteinGram" name="proteinGram" type="number" step="0.1" min="0" inputMode="decimal" />
+              <Input id="proteinGram" name="proteinGram" type="text" inputMode="decimal" />
             </div>
             <div>
               <Label htmlFor="lemakGram">Lemak (g)</Label>
-              <Input id="lemakGram" name="lemakGram" type="number" step="0.1" min="0" inputMode="decimal" />
+              <Input id="lemakGram" name="lemakGram" type="text" inputMode="decimal" />
             </div>
           </div>
         </div>
@@ -117,11 +114,11 @@ export function OnboardingForm({
         <div className="grid grid-cols-2 gap-3">
           <div>
             <Label htmlFor="hbValue">Hb (g/dL)</Label>
-            <Input id="hbValue" name="hbValue" type="number" step="0.1" min="0" required inputMode="decimal" />
+            <Input id="hbValue" name="hbValue" type="text" required inputMode="decimal" />
           </div>
           <div>
             <Label htmlFor="zincValue">Zinc (µg/dL)</Label>
-            <Input id="zincValue" name="zincValue" type="number" step="0.1" min="0" required inputMode="decimal" />
+            <Input id="zincValue" name="zincValue" type="text" required inputMode="decimal" />
           </div>
         </div>
         {needsConfirmHb && (

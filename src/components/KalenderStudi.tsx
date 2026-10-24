@@ -79,8 +79,15 @@ export function KalenderStudi({
       return;
     }
     const h = peta.get(ymd);
-    if (h && hrefTemplate && ymd <= todayYmd) {
-      router.push(hrefTemplate.replace("{n}", String(h.hariKe)));
+    if (h) {
+      // Tanggal di dalam rentang penelitian: buka form isian hari itu (kalau sudah tiba).
+      if (hrefTemplate && ymd <= todayYmd) {
+        setTentatif(null);
+        router.push(hrefTemplate.replace("{n}", String(h.hariKe)));
+      }
+    } else if (boleh) {
+      // Tanggal di luar rentang (sebelum Hari ke-1 / sesudah Hari ke-28): tawarkan jadi awal penelitian.
+      setTentatif(ymd);
     }
   };
 
@@ -114,7 +121,7 @@ export function KalenderStudi({
     const hariIni = ymd === todayYmd;
     const tiba = ymd <= todayYmd;
     const dipilih = tentatif === ymd;
-    const bisaKlik = memilih || (!!h && !!hrefTemplate && tiba);
+    const bisaKlik = memilih || (boleh && (h ? !!hrefTemplate && tiba : true));
 
     let warna = "border-transparent bg-white text-slate-700";
     if (h) {
@@ -124,7 +131,7 @@ export function KalenderStudi({
           ? "border-amber-200 bg-amber-50 text-slate-900"
           : "border-slate-200 bg-slate-50 text-slate-700";
     }
-    if (!h && !memilih) warna += " text-slate-400";
+    if (!h && !memilih) warna += " text-slate-500";
     if (dipilih) warna = "border-slate-900 bg-slate-900 text-white";
 
     sel.push(
@@ -229,12 +236,18 @@ export function KalenderStudi({
         {sel}
       </div>
 
-      {tentatif && memilih && (
+      {tentatif && boleh && (
         <div className="mt-4 rounded-lg border border-slate-200 bg-slate-50 p-3">
           <p className="text-sm text-slate-800">
             Jadikan <span className="font-semibold">{label(tentatif)}</span> sebagai Hari ke-1 penelitian?
           </p>
           <p className="mt-0.5 text-xs text-slate-500">Hari ke-28 jatuh pada {label(addDays(tentatif, 27))}.</p>
+          {mulai && (
+            <p className="mt-0.5 text-xs text-slate-500">
+              Awal penelitian saat ini {label(mulai)} akan dipindahkan; {jumlahTerisi} hari yang sudah terisi tetap
+              menempel pada nomor harinya (hanya tanggalnya yang bergeser).
+            </p>
+          )}
           <div className="mt-3 flex gap-2">
             <Button onClick={simpan} disabled={pending}>
               {pending ? "Menyimpan..." : mulai ? "Simpan tanggal baru" : "Mulai penelitian"}
@@ -264,7 +277,12 @@ export function KalenderStudi({
           <span className="mr-1 inline-block h-2.5 w-2.5 rounded-sm ring-2 ring-brand" />
           Hari ini
         </span>
-        {!memilih && hrefTemplate && <span>Klik hari yang sudah tiba (termasuk yang terlewat) untuk mengisi.</span>}
+        {!memilih && (
+          <span>
+            Klik hari berwarna yang sudah tiba (termasuk yang terlewat) untuk mengisi; klik tanggal lain untuk
+            memindahkan awal penelitian.
+          </span>
+        )}
       </div>
     </Card>
   );

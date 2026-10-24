@@ -4,3 +4,5 @@ ALTER TABLE "HasilLab" ALTER COLUMN "feValue" DROP NOT NULL;
 -- Kalender penelitian: tanggal Hari ke-1 dipilih lewat kalender (balita baru belum punya tanggal mulai).
 ALTER TABLE "Balita" ALTER COLUMN "tanggalMulai" DROP NOT NULL;
 ALTER TABLE "Balita" ALTER COLUMN "tanggalMulai" DROP DEFAULT;
+-- Semua input angka boleh desimal (usia balita dalam bulan, mis. 24,5).
+ALTER TABLE "Balita" ALTER COLUMN "usiaBulan" TYPE DOUBLE PRECISION;

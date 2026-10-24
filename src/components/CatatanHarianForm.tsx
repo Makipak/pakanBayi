@@ -59,9 +59,7 @@ export function CatatanHarianForm({
           <Input
             id="beratBadan"
             name="beratBadan"
-            type="number"
-            step="0.1"
-            min="0"
+            type="text"
             required
             defaultValue={defaultBeratBadan ?? undefined}
             inputMode="decimal"
@@ -72,9 +70,7 @@ export function CatatanHarianForm({
           <Input
             id="tinggiBadan"
             name="tinggiBadan"
-            type="number"
-            step="0.1"
-            min="0"
+            type="text"
             required
             defaultValue={defaultTinggiBadan ?? undefined}
             inputMode="decimal"
@@ -89,13 +85,10 @@ export function CatatanHarianForm({
         <Input
           id="konsumsiNuggetGram"
           name="konsumsiNuggetGram"
-          type="number"
-          step="1"
-          min="0"
-          max={TARGET_NUGGET_GRAM}
+          type="text"
           required
           defaultValue={defaultKonsumsi ?? undefined}
-          inputMode="numeric"
+          inputMode="decimal"
         />
       </div>
 
@@ -107,9 +100,7 @@ export function CatatanHarianForm({
             <Input
               id="energiKkal"
               name="energiKkal"
-              type="number"
-              step="1"
-              min="0"
+              type="text"
               defaultValue={defaultEnergi ?? undefined}
               inputMode="decimal"
             />
@@ -119,9 +110,7 @@ export function CatatanHarianForm({
             <Input
               id="karbohidratGram"
               name="karbohidratGram"
-              type="number"
-              step="0.1"
-              min="0"
+              type="text"
               defaultValue={defaultKarbohidrat ?? undefined}
               inputMode="decimal"
             />
@@ -131,9 +120,7 @@ export function CatatanHarianForm({
             <Input
               id="proteinGram"
               name="proteinGram"
-              type="number"
-              step="0.1"
-              min="0"
+              type="text"
               defaultValue={defaultProtein ?? undefined}
               inputMode="decimal"
             />
@@ -143,9 +130,7 @@ export function CatatanHarianForm({
             <Input
               id="lemakGram"
               name="lemakGram"
-              type="number"
-              step="0.1"
-              min="0"
+              type="text"
               defaultValue={defaultLemak ?? undefined}
               inputMode="decimal"
             />

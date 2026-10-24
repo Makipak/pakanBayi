@@ -9,9 +9,15 @@ import {
 
 // Asupan makronutrien (karbohidrat/protein/lemak) bersifat opsional: kolom kosong
 // -> undefined (disimpan null), kalau diisi harus angka >= 0.
+// Semua input angka menerima desimal; koma ("12,5") dan titik ("12.5") sama-sama diterima.
+const normalisasiAngka = (v: unknown) =>
+  typeof v === "string" ? (v.trim() === "" ? undefined : v.trim().replace(",", ".")) : v;
+export const angka = (pesan = "Harus berupa angka") =>
+  z.preprocess(normalisasiAngka, z.coerce.number({ error: pesan }));
+
 export const gramOpsional = z.preprocess(
-  (v) => (v === "" || v === null || v === undefined ? undefined : v),
-  z.coerce.number().min(0, "Tidak boleh negatif").optional()
+  normalisasiAngka,
+  z.coerce.number({ error: "Harus berupa angka" }).min(0, "Tidak boleh negatif").optional()
 );
 
 export const loginSchema = z.object({
@@ -22,14 +28,11 @@ export const loginSchema = z.object({
 // Input balita sengaja minimal: identitas dasar + antropometri awal + kader penanggung jawab.
 export const balitaSchema = z.object({
   nama: z.string().trim().min(1, "Nama wajib diisi"),
-  usiaBulan: z.coerce
-    .number()
-    .int()
-    .min(0, "Usia minimal 0 bulan")
-    .max(59, "Usia maksimal 59 bulan (definisi balita)"),
+  usiaBulan: angka("Usia wajib diisi (angka, boleh desimal)")
+    .pipe(z.number().min(0, "Usia minimal 0 bulan").max(80, "Usia maksimal 80 bulan")),
   jenisKelamin: z.enum(JENIS_KELAMIN),
-  tinggiBadanAwal: z.coerce.number().positive("Tinggi badan wajib diisi"),
-  beratBadanAwal: z.coerce.number().positive("Berat badan wajib diisi"),
+  tinggiBadanAwal: angka("Tinggi badan wajib diisi").pipe(z.number().positive("Tinggi badan wajib diisi")),
+  beratBadanAwal: angka("Berat badan wajib diisi").pipe(z.number().positive("Berat badan wajib diisi")),
   kaderId: z.string().min(1, "Kader penanggung jawab wajib dipilih"),
 });
 
@@ -45,14 +48,11 @@ export const kaderSchema = z.object({
 
 export const catatanHarianSchema = z.object({
   catatanHarianId: z.string().min(1),
-  tinggiBadan: z.coerce.number().positive("Tinggi badan wajib angka positif"),
-  beratBadan: z.coerce
-    .number()
-    .positive("Berat badan wajib angka positif"),
-  konsumsiNuggetGram: z.coerce
-    .number()
-    .min(0, "Tidak boleh negatif")
-    .max(TARGET_NUGGET_GRAM, `Maksimal ${TARGET_NUGGET_GRAM} gram`),
+  tinggiBadan: angka("Tinggi badan wajib diisi (angka)").pipe(z.number().positive("Tinggi badan wajib angka positif")),
+  beratBadan: angka("Berat badan wajib diisi (angka)").pipe(z.number().positive("Berat badan wajib angka positif")),
+  konsumsiNuggetGram: angka("Konsumsi nugget wajib diisi (angka)").pipe(
+    z.number().min(0, "Tidak boleh negatif").max(TARGET_NUGGET_GRAM, `Maksimal ${TARGET_NUGGET_GRAM} gram`)
+  ),
   energiKkal: gramOpsional,
   karbohidratGram: gramOpsional,
   proteinGram: gramOpsional,
@@ -63,8 +63,8 @@ export const catatanHarianSchema = z.object({
 export const hasilLabSchema = z.object({
   balitaId: z.string().min(1),
   tipe: z.enum(TIPE_LAB),
-  hbValue: z.coerce.number().positive("Nilai Hb wajib angka positif"),
-  zincValue: z.coerce.number().positive("Nilai Zinc wajib angka positif"),
+  hbValue: angka("Nilai Hb wajib diisi (angka)").pipe(z.number().positive("Nilai Hb wajib angka positif")),
+  zincValue: angka("Nilai Zinc wajib diisi (angka)").pipe(z.number().positive("Nilai Zinc wajib angka positif")),
   tanggalPengukuran: z.string().min(1, "Tanggal wajib diisi"),
   confirmOutOfRange: z.coerce.boolean().optional(),
 });

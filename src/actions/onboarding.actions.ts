@@ -11,7 +11,7 @@ import {
   HB_MIN_WAJAR,
   TARGET_NUGGET_GRAM,
 } from "@/lib/constants";
-import { gramOpsional } from "@/lib/validators";
+import { angka, gramOpsional } from "@/lib/validators";
 import { sudahTiba, ymdWib } from "@/lib/data";
 import type { ActionResult } from "./balita.actions";
 
@@ -23,12 +23,11 @@ const hariPertamaSchema = z.object({
   balitaId: z.string().min(1),
   catatanHarianId: z.string().min(1),
 
-  tinggiBadan: z.coerce.number().positive("Tinggi badan wajib angka positif"),
-  beratBadan: z.coerce.number().positive("Berat badan wajib angka positif"),
-  konsumsiNuggetGram: z.coerce
-    .number()
-    .min(0, "Tidak boleh negatif")
-    .max(TARGET_NUGGET_GRAM, `Maksimal ${TARGET_NUGGET_GRAM} gram`),
+  tinggiBadan: angka("Tinggi badan wajib diisi (angka)").pipe(z.number().positive("Tinggi badan wajib angka positif")),
+  beratBadan: angka("Berat badan wajib diisi (angka)").pipe(z.number().positive("Berat badan wajib angka positif")),
+  konsumsiNuggetGram: angka("Konsumsi nugget wajib diisi (angka)").pipe(
+    z.number().min(0, "Tidak boleh negatif").max(TARGET_NUGGET_GRAM, `Maksimal ${TARGET_NUGGET_GRAM} gram`)
+  ),
   energiKkal: gramOpsional,
   karbohidratGram: gramOpsional,
   proteinGram: gramOpsional,
@@ -36,8 +35,8 @@ const hariPertamaSchema = z.object({
   confirmBeratOutOfRange: z.coerce.boolean().optional(),
 
   tanggalPengukuranLab: z.string().min(1, "Tanggal pengukuran lab wajib diisi"),
-  hbValue: z.coerce.number().positive("Nilai Hb wajib angka positif"),
-  zincValue: z.coerce.number().positive("Nilai Zinc wajib angka positif"),
+  hbValue: angka("Nilai Hb wajib diisi (angka)").pipe(z.number().positive("Nilai Hb wajib angka positif")),
+  zincValue: angka("Nilai Zinc wajib diisi (angka)").pipe(z.number().positive("Nilai Zinc wajib angka positif")),
   confirmHbOutOfRange: z.coerce.boolean().optional(),
 });
 
