@@ -8,6 +8,7 @@ import { complianceRate, delta, formatTanggal } from "@/lib/utils";
 import { DURASI_STUDI_HARI, HARI_LAB, LABEL_LAB, TIPE_LAB } from "@/lib/constants";
 import { HasilLabForm } from "@/components/HasilLabForm";
 import { KalenderStudi } from "@/components/KalenderStudi";
+import { KeteranganHarian } from "@/components/KeteranganHarian";
 import { CatatanHarianForm } from "@/components/CatatanHarianForm";
 import { BalitaStatusForm } from "@/components/BalitaStatusForm";
 import { BalitaEditForm } from "@/components/BalitaEditForm";
@@ -107,6 +108,8 @@ export default async function AdminBalitaDetailPage(
         jumlahTerisi={terisi.length}
         hrefTemplate={balita.status === "AKTIF" ? `/admin/balita/${balita.id}?hari={n}#input-harian` : undefined}
       />
+
+      <KeteranganHarian catatan={balita.catatanHarian} hrefTemplate={`/admin/balita/${balita.id}?hari={n}#input-harian`} />
 
       {adaDataIdentitas && (
       <Card>
@@ -247,23 +250,6 @@ export default async function AdminBalitaDetailPage(
           <Stat label="Lemak" value={rataMakro("lemakGram") !== null ? `${rataMakro("lemakGram")} g` : "-"} />
         </div>
       </Card>
-
-      {balita.catatanHarian.some((c) => c.keterangan) && (
-        <Card>
-          <h2 className="mb-3 font-medium text-slate-900">Keterangan Harian</h2>
-          <ul className="space-y-2 text-sm">
-            {balita.catatanHarian
-              .filter((c) => c.keterangan)
-              .sort((a, b) => a.hariKe - b.hariKe)
-              .map((c) => (
-                <li key={c.id} className="flex gap-3">
-                  <span className="w-16 shrink-0 text-slate-400">Hari {c.hariKe}</span>
-                  <span className="whitespace-pre-line text-slate-700">{c.keterangan}</span>
-                </li>
-              ))}
-          </ul>
-        </Card>
-      )}
 
       {balita.status === "AKTIF" && hariDipilih && sudahTiba(hariDipilih.tanggal) && (
         <Card id="input-harian">

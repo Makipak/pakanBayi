@@ -10,6 +10,7 @@ import { infoKalender, sudahTiba, todayCatatan, ymdWib } from "@/lib/data";
 import { DURASI_STUDI_HARI, HARI_LAB, LABEL_LAB, TIPE_LAB } from "@/lib/constants";
 import { HasilLabForm } from "@/components/HasilLabForm";
 import { KalenderStudi } from "@/components/KalenderStudi";
+import { KeteranganHarian } from "@/components/KeteranganHarian";
 
 export default async function KaderBalitaDetailPage(
   props: PageProps<"/kader/balita/[id]">
@@ -77,6 +78,8 @@ export default async function KaderBalitaDetailPage(
           balita.status === "AKTIF" ? `/kader/balita/${balita.id}/input?hari={n}#input-harian` : undefined
         }
       />
+
+      <KeteranganHarian catatan={balita.catatanHarian} hrefTemplate={`/kader/balita/${balita.id}/input?hari={n}#input-harian`} />
 
       {balita.catatanHarian.length === 0 ? (
         <Card>
