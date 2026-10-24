@@ -127,7 +127,7 @@ balita-feed/                          # nama folder/package tidak diganti (lihat
 │   │   ├── balita.actions.ts        # createBalita, updateBalita, updateBalitaStatus, deleteBalita,
 │   │   │                             # createKader, updateKader, deleteKader
 │   │   ├── catatan-harian.actions.ts
-│   │   ├── hasil-lab.actions.ts     # kunci hari per tipe lab (lihat rule.md §7)
+│   │   ├── hasil-lab.actions.ts     # lab: baru bisa diisi setelah harinya tiba (rule.md §7)
 │   │   ├── onboarding.actions.ts    # submitHariPertama — gabung harian + Baseline
 │   │   └── signout.action.ts
 │   ├── lib/
@@ -143,7 +143,7 @@ balita-feed/                          # nama folder/package tidak diganti (lihat
 │   │   ├── BalitaStatusForm.tsx
 │   │   ├── CatatanHarianForm.tsx    # input harian (hari ke-2 dst.)
 │   │   ├── OnboardingForm.tsx       # input hari-1 gabungan (harian + Baseline)
-│   │   ├── HasilLabForm.tsx         # 1 tipe lab per render (dikunci ke hari yg sesuai)
+│   │   ├── HasilLabForm.tsx         # 1 tipe lab per render
 │   │   ├── KaderForm.tsx / KaderRow.tsx / KaderEditForm.tsx / KaderDeleteButton.tsx
 │   │   ├── BalitaFields.tsx         # 6 field form balita (dipakai Tambah & Edit)
 │   │   ├── BalitaEditForm.tsx       # form Edit Profil balita (admin)

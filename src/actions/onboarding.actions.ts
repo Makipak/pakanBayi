@@ -12,6 +12,7 @@ import {
   TARGET_NUGGET_GRAM,
 } from "@/lib/constants";
 import { gramOpsional } from "@/lib/validators";
+import { sudahTiba, ymdWib } from "@/lib/data";
 import type { ActionResult } from "./balita.actions";
 
 // Hari ke-1: input harian (berat/tinggi/nugget; makro opsional) DIGABUNG dengan hasil lab
@@ -66,6 +67,9 @@ export async function submitHariPertama(
     const hari1 = balita.catatanHarian.find((c) => c.hariKe === 1);
     if (!hari1 || hari1.id !== data.catatanHarianId) {
       return { ok: false, error: "Data hari pertama tidak ditemukan" };
+    }
+    if (!sudahTiba(new Date(hari1.tanggal))) {
+      return { ok: false, error: `Hari ke-1 baru dimulai pada ${ymdWib(hari1.tanggal)}` };
     }
     if (hari1.statusInput === "TERISI") {
       return { ok: false, error: "Data hari pertama sudah pernah diisi" };

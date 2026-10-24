@@ -6,10 +6,11 @@ import { Badge, Button, Card, EmptyState } from "@/components/ui";
 import { TrendChart } from "@/components/TrendChart";
 import { IconBack } from "@/components/icons";
 import { complianceRate, delta, formatTanggal } from "@/lib/utils";
-import { todayCatatan } from "@/lib/data";
+import { sudahTiba, todayCatatan, ymdWib } from "@/lib/data";
 import { DURASI_STUDI_HARI, HARI_LAB, LABEL_LAB, TIPE_LAB } from "@/lib/constants";
 import { HasilLabForm } from "@/components/HasilLabForm";
 import { KalenderStudi } from "@/components/KalenderStudi";
+import { TanggalMulaiForm } from "@/components/TanggalMulaiForm";
 import { OnboardingForm } from "@/components/OnboardingForm";
 
 export default async function KaderBalitaDetailPage(
@@ -54,11 +55,8 @@ export default async function KaderBalitaDetailPage(
   const hari1 = balita.catatanHarian.find((c) => c.hariKe === 1);
   const day1BelumSelesai = !hari1 || hari1.statusInput !== "TERISI" || !baseline;
 
-  // Tipe lab yang "due" hari ini (kalau ada) — form input hanya muncul untuk ini.
-  // BASELINE tidak ikut di sini karena sudah ditangani lewat OnboardingForm di atas.
-  const tipeLabHariIni = TIPE_LAB.filter((t) => t !== "BASELINE").find(
-    (t) => hariIni?.hariKe === HARI_LAB[t]
-  );
+  // BASELINE ditangani lewat OnboardingForm; form lab untuk kader hanya Endline.
+  const tipeLabKader = TIPE_LAB.filter((t) => t !== "BASELINE");
 
   const bbChartData = balita.catatanHarian.map((c) => ({ hariKe: c.hariKe, nilai: c.beratBadan }));
   const tbChartData = balita.catatanHarian.map((c) => ({ hariKe: c.hariKe, nilai: c.tinggiBadan }));
@@ -79,7 +77,23 @@ export default async function KaderBalitaDetailPage(
         <StatusBadge status={balita.status} />
       </div>
 
-      <KalenderStudi catatan={balita.catatanHarian} />
+      <KalenderStudi
+        catatan={balita.catatanHarian}
+        hrefHari={
+          balita.status === "AKTIF" && !day1BelumSelesai
+            ? (n) => `/kader/balita/${balita.id}/input?hari=${n}#input-harian`
+            : undefined
+        }
+        aksi={
+          balita.status === "AKTIF" ? (
+            <TanggalMulaiForm
+              balitaId={balita.id}
+              defaultYmd={ymdWib(balita.catatanHarian[0]?.tanggal ?? balita.tanggalMulai)}
+              jumlahTerisi={terisi.length}
+            />
+          ) : undefined
+        }
+      />
 
       {balita.status === "AKTIF" && day1BelumSelesai && hari1 ? (
         <Card>
@@ -175,21 +189,24 @@ export default async function KaderBalitaDetailPage(
           <LabSummary label={`${LABEL_LAB.ENDLINE} (Hari-${HARI_LAB.ENDLINE})`} data={endline} />
         </div>
         {balita.status === "AKTIF" && (
-          <div className="mt-4 border-t border-slate-100 pt-4">
-            {tipeLabHariIni ? (
-              <HasilLabForm
-                balitaId={balita.id}
-                tipe={tipeLabHariIni}
-                label={LABEL_LAB[tipeLabHariIni]}
-                sudahDiisi={!!balita.hasilLab.find((h) => h.tipe === tipeLabHariIni)}
-              />
-            ) : (
-              <p className="text-xs text-slate-400">
-                Form input hasil lab otomatis terbuka pas Hari ke-{HARI_LAB.BASELINE} (
-                {LABEL_LAB.BASELINE}) dan Hari ke-{HARI_LAB.ENDLINE} ({LABEL_LAB.ENDLINE}) — supaya tidak ada yang tidak sengaja
-                kepencet/keganti di hari lain.
-              </p>
-            )}
+          <div className="mt-4 space-y-4 border-t border-slate-100 pt-4">
+            {tipeLabKader.map((t) => {
+              const target = balita.catatanHarian.find((c) => c.hariKe === HARI_LAB[t]);
+              return target && sudahTiba(target.tanggal) ? (
+                <HasilLabForm
+                  key={t}
+                  balitaId={balita.id}
+                  tipe={t}
+                  label={LABEL_LAB[t]}
+                  sudahDiisi={!!balita.hasilLab.find((h) => h.tipe === t)}
+                />
+              ) : (
+                <p key={t} className="text-xs text-slate-400">
+                  Form {LABEL_LAB[t]} terbuka mulai Hari ke-{HARI_LAB[t]}
+                  {target ? ` (${formatTanggal(target.tanggal)})` : ""}. Hari yang terlewat tetap bisa diisi belakangan.
+                </p>
+              );
+            })}
           </div>
         )}
       </Card>

@@ -5,6 +5,7 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { catatanHarianSchema } from "@/lib/validators";
 import { BERAT_BADAN_MAX_WAJAR, BERAT_BADAN_MIN_WAJAR } from "@/lib/constants";
+import { sudahTiba } from "@/lib/data";
 import type { ActionResult } from "./balita.actions";
 
 // Cek scope: kader hanya boleh akses balita miliknya sendiri (rule.md §1, architecture.md §3)
@@ -42,8 +43,8 @@ export async function submitCatatanHarian(
       return { ok: false, error: "Catatan harian tidak ditemukan" };
     }
 
-    // Tanggal tidak boleh di masa depan (rule.md §2)
-    if (catatan.tanggal > new Date()) {
+    // Tanggal tidak boleh di masa depan (rule.md §2). Hari yang terlewat boleh diisi belakangan.
+    if (!sudahTiba(catatan.tanggal)) {
       return { ok: false, error: "Tidak bisa input untuk tanggal di masa depan" };
     }
 

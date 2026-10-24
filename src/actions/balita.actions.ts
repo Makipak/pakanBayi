@@ -72,18 +72,25 @@ export async function createBalita(formData: FormData): Promise<ActionResult> {
   }
 }
 
-// Menentukan tanggal Hari ke-1; tanggal Hari ke-2..28 dihitung berurutan darinya.
+// Menentukan tanggal Hari ke-1 (admin, atau kader pemilik balita); tanggal Hari ke-2..28 dihitung berurutan darinya.
 // Isian harian tetap menempel pada nomor harinya (hariKe), hanya tanggalnya yang bergeser.
 export async function updateTanggalMulai(balitaId: string, ymd: string): Promise<ActionResult> {
   try {
-    await requireAdmin();
+    const session = await auth();
+    if (!session) return { ok: false, error: "Belum login" };
     if (!/^\d{4}-\d{2}-\d{2}$/.test(ymd)) return { ok: false, error: "Tanggal tidak valid" };
     const base = ymdKeDate(ymd);
     if (Number.isNaN(base.getTime()) || ymdWib(base) !== ymd) {
       return { ok: false, error: "Tanggal tidak valid" };
     }
-    const existing = await prisma.balita.findUnique({ where: { id: balitaId }, select: { id: true } });
+    const existing = await prisma.balita.findUnique({
+      where: { id: balitaId },
+      select: { id: true, kaderId: true },
+    });
     if (!existing) return { ok: false, error: "Balita tidak ditemukan" };
+    if (session.user.role === "KADER" && existing.kaderId !== session.user.id) {
+      return { ok: false, error: "Anda tidak punya akses ke balita ini" };
+    }
 
     await prisma.$transaction([
       prisma.balita.update({ where: { id: balitaId }, data: { tanggalMulai: base } }),

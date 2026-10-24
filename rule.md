@@ -1,6 +1,6 @@
 # Rule — NUTRIMO (Nuget Nutrition Monitoring): Business Rules & Validasi
 
-> **Update 24 Okt 2026:** (1) halaman detail balita punya **Kalender Studi** (hari ke-1…28 beserta tanggalnya) di atas
+> **Update 24 Okt 2026:** (1) halaman detail balita punya **Kalender Studi** (klik hari untuk mengisi, hari terlewat boleh diisi; lihat §7) (hari ke-1…28 beserta tanggalnya) di atas
 > data harian & hasil lab; admin menentukan tanggal Hari ke-1, tanggal berikutnya mengikuti otomatis. Tanggal dihitung
 > per hari kalender WIB. (2) **Fe dihapus** dari input hasil lab (hanya Hb & Zinc). (3) Input harian menambah
 > **Energi (kkal)** — bersama karbohidrat/protein/lemak, semuanya opsional.
@@ -27,7 +27,7 @@
 | Hapus balita | ✅ | ❌ |
 | Input `CatatanHarian` (harian) | ✅ (semua balita) | ✅ (hanya balita miliknya) |
 | Edit `CatatanHarian` yang sudah diisi | ✅ | ✅ (hanya milik sendiri) |
-| Input `HasilLab` (Baseline/Endline) | ✅ (semua balita) | ✅ (hanya balita miliknya) — **dikunci ke hari yang sesuai, lihat §7** |
+| Input `HasilLab` (Baseline/Endline) | ✅ (semua balita) | ✅ (hanya balita miliknya) — **baru bisa diisi setelah harinya tiba, hari terlewat boleh diisi belakangan — lihat §7** |
 | Isi form onboarding hari-1 (`submitHariPertama`) | ✅ | ✅ (hanya balita miliknya) |
 | Tambah akun kader | ✅ | ❌ |
 | **Update akun kader** (username/password) | ✅ | ❌ |
@@ -47,7 +47,7 @@ berdasarkan `kaderId = session.user.id` di level query database, bukan hanya dis
 | `konsumsiNuggetGram` | 0–50 gram (`TARGET_NUGGET_GRAM`). |
 | `energiKkal`, `karbohidratGram`, `proteinGram`, `lemakGram` | **Opsional** (sejak 19 Okt 2026) — boleh dikosongkan (disimpan `null`); kalau diisi harus angka ≥ 0. Berlaku di input harian dan onboarding hari-1. |
 | `hariKe` | 1–28, harus sesuai `tanggalMulai` balita. |
-| `tanggal` | Tidak boleh di masa depan. |
+| `tanggal` | Tidak boleh di masa depan; hari yang terlewat boleh diisi belakangan. |
 
 ## 3. Validasi Input — `HasilLab`
 
@@ -81,28 +81,26 @@ memang punya datanya.
 
 Tidak berubah dari v1: baris untuk semua 28 hari **dibuat otomatis** saat balita didaftarkan,
 dengan `statusInput = TIDAK_TERISI`. Kalau kader tidak input pada hari itu, baris dibiarkan
-kosong. Tidak ada backfill.
+kosong. Sejak 24 Okt 2026 hari yang terlewat **boleh diisi belakangan** (klik harinya di Kalender Studi, lihat §7).
 
-## 7. Aturan "Kunci Hari" — `HasilLab` (baru)
+## 7. Aturan Hari Studi & Hasil Lab (diubah 24 Okt 2026)
 
-Hb/Zinc diambil di **2 checkpoint**: Baseline (Hari ke-1) dan Endline (Hari ke-28) — lihat `HARI_LAB` di `src/lib/constants.ts`. Untuk mencegah data ke-input/ke-ubah
-tidak sengaja di hari yang salah:
+Hb/Zinc diambil di **2 checkpoint**: Baseline (Hari ke-1) dan Endline (Hari ke-28) — lihat `HARI_LAB`
+di `src/lib/constants.ts`. Sebelumnya form hanya terbuka tepat di hari targetnya ("kunci hari");
+sekarang aturannya **"tidak boleh sebelum harinya tiba"**:
 
-- Form input untuk suatu tipe lab **hanya dirender** kalau hari studi balita itu **hari ini**
-  (dihitung dari `tanggalMulai`, bukan tanggal kalender biasa) **sama dengan** hari target tipe
-  tersebut. Di luar hari itu, hanya ringkasan angka tersimpan yang ditampilkan (read-only, tanpa
-  form sama sekali).
-- Ini ditegakkan di **dua tempat**: di UI (form memang tidak dirender) dan di server
-  (`submitHasilLab` menolak submit kalau `hariKe` hari ini ≠ hari target tipe yang disubmit) —
-  supaya tidak bisa dilewati lewat request langsung.
-- **Pengecualian: Baseline.** Baseline ditangani lewat alur onboarding (§8), bukan lewat kunci
-  hari biasa — jadi tetap bisa diisi kapan saja **selama data hari-1 belum pernah disubmit**,
-  tidak strict harus tepat di hari kalender balita didaftarkan (mengantisipasi kader yang baru
-  buka sistem beberapa hari setelah balita ditambahkan).
-- **Belum ada toleransi keterlambatan** untuk Endline (mis. ±2 hari) — kalau kader
-  terlambat mengukur di luar hari target, saat ini datanya tidak bisa diinput sama sekali lewat
-  form. Kalau dibutuhkan toleransi atau override khusus admin, ini dicatat sebagai enhancement
-  di §11.
+- **Hari studi yang sudah tiba (hari ini atau terlewat) boleh diisi belakangan** — oleh Kader
+  (balita miliknya) maupun Admin. Hari yang belum tiba tidak bisa diisi (input harian, onboarding,
+  maupun hasil lab). Ditegakkan di UI dan di server (`submitCatatanHarian`, `submitHariPertama`,
+  `submitHasilLab` memakai `sudahTiba()` di `src/lib/data.ts`).
+- **Kalender Studi** di halaman detail balita menampilkan tanggal tiap hari ke-1…28. Klik hari yang
+  sudah tiba untuk mengisinya (`?hari=N`). Tanggal Hari ke-1 bebas ditentukan (default tanggal
+  pendaftaran) oleh Admin atau Kader pemilik balita; Hari ke-2…28 mengikuti berurutan. Mengubahnya
+  hanya menggeser tanggal — isian tetap menempel pada nomor harinya.
+- Perbandingan "sudah tiba" dilakukan per **tanggal kalender WIB**, bukan zona waktu server.
+- **Baseline** tetap lewat alur onboarding (§8) untuk Kader; Admin bisa mengisi Baseline & Endline
+  lewat form lab di detail balita begitu harinya tiba.
+- Tanggal pengukuran Endline tetap harus ≥ 28 hari setelah tanggal pengukuran Baseline (pengaman).
 
 ## 8. Aturan Onboarding Hari ke-1 (baru)
 

@@ -5,7 +5,6 @@ import { Card, EmptyState } from "@/components/ui";
 import { TrendChart } from "@/components/TrendChart";
 import { IconBack } from "@/components/icons";
 import { complianceRate, delta, formatTanggal } from "@/lib/utils";
-import { todayCatatan } from "@/lib/data";
 import { DURASI_STUDI_HARI, HARI_LAB, LABEL_LAB, TIPE_LAB } from "@/lib/constants";
 import { HasilLabForm } from "@/components/HasilLabForm";
 import { KalenderStudi } from "@/components/KalenderStudi";
@@ -13,12 +12,13 @@ import { CatatanHarianForm } from "@/components/CatatanHarianForm";
 import { BalitaStatusForm } from "@/components/BalitaStatusForm";
 import { BalitaEditForm } from "@/components/BalitaEditForm";
 import { TanggalMulaiForm } from "@/components/TanggalMulaiForm";
-import { ymdWib } from "@/lib/data";
+import { pilihHari, sudahTiba, ymdWib } from "@/lib/data";
 
 export default async function AdminBalitaDetailPage(
   props: PageProps<"/admin/balita/[id]">
 ) {
   const { id } = await props.params;
+  const sp = await props.searchParams;
 
   const kaderList = await prisma.user.findMany({
     where: { role: "KADER" },
@@ -47,7 +47,7 @@ export default async function AdminBalitaDetailPage(
 
   const terisi = balita.catatanHarian.filter((c) => c.statusInput === "TERISI");
   const rate = complianceRate(terisi.length);
-  const hariIni = todayCatatan(balita.catatanHarian);
+  const hariDipilih = pilihHari(balita.catatanHarian, sp.hari);
   const beratTerakhir = [...terisi].reverse()[0]?.beratBadan ?? null;
   const tinggiTerakhir = [...terisi].reverse()[0]?.tinggiBadan ?? null;
   const deltaBB = delta(beratTerakhir, balita.beratBadanAwal);
@@ -63,8 +63,6 @@ export default async function AdminBalitaDetailPage(
 
   const baseline = balita.hasilLab.find((h) => h.tipe === "BASELINE");
   const endline = balita.hasilLab.find((h) => h.tipe === "ENDLINE");
-  // Tipe lab yang "due" hari ini (kalau ada) — form input hanya muncul untuk ini.
-  const tipeLabHariIni = TIPE_LAB.find((t) => hariIni?.hariKe === HARI_LAB[t]);
 
   const bbChartData = balita.catatanHarian.map((c) => ({ hariKe: c.hariKe, nilai: c.beratBadan }));
   const tbChartData = balita.catatanHarian.map((c) => ({ hariKe: c.hariKe, nilai: c.tinggiBadan }));
@@ -101,6 +99,8 @@ export default async function AdminBalitaDetailPage(
 
       <KalenderStudi
         catatan={balita.catatanHarian}
+        terpilih={hariDipilih?.hariKe}
+        hrefHari={balita.status === "AKTIF" ? (n) => `/admin/balita/${balita.id}?hari=${n}#input-harian` : undefined}
         aksi={
           <TanggalMulaiForm
             balitaId={balita.id}
@@ -242,21 +242,23 @@ export default async function AdminBalitaDetailPage(
         </div>
       </Card>
 
-      {balita.status === "AKTIF" && hariIni && (
-        <Card>
+      {balita.status === "AKTIF" && hariDipilih && sudahTiba(hariDipilih.tanggal) && (
+        <Card id="input-harian">
           <h2 className="mb-3 font-medium text-slate-900">
-            Input Harian ({formatTanggal(new Date())})
+            Input Harian — Hari ke-{hariDipilih.hariKe} ({formatTanggal(hariDipilih.tanggal)})
+            {hariDipilih.statusInput === "TERISI" ? " · sudah diisi (edit)" : ""}
           </h2>
           <CatatanHarianForm
+            key={hariDipilih.id}
             balitaId={balita.id}
-            catatanHarianId={hariIni.id}
-            hariKe={hariIni.hariKe}
-            defaultTinggiBadan={hariIni.tinggiBadan}
-            defaultBeratBadan={hariIni.beratBadan}
-            defaultKonsumsi={hariIni.konsumsiNuggetGram}
-            defaultKarbohidrat={hariIni.karbohidratGram}
-            defaultProtein={hariIni.proteinGram}
-            defaultLemak={hariIni.lemakGram}
+            catatanHarianId={hariDipilih.id}
+            hariKe={hariDipilih.hariKe}
+            defaultTinggiBadan={hariDipilih.tinggiBadan}
+            defaultBeratBadan={hariDipilih.beratBadan}
+            defaultKonsumsi={hariDipilih.konsumsiNuggetGram}
+            defaultKarbohidrat={hariDipilih.karbohidratGram}
+            defaultProtein={hariDipilih.proteinGram}
+            defaultLemak={hariDipilih.lemakGram}
           />
         </Card>
       )}
@@ -268,21 +270,24 @@ export default async function AdminBalitaDetailPage(
           <LabSummary label={`${LABEL_LAB.ENDLINE} (Hari-${HARI_LAB.ENDLINE})`} data={endline} />
         </div>
         {balita.status === "AKTIF" && (
-          <div className="mt-4 border-t border-slate-100 pt-4">
-            {tipeLabHariIni ? (
-              <HasilLabForm
-                balitaId={balita.id}
-                tipe={tipeLabHariIni}
-                label={LABEL_LAB[tipeLabHariIni]}
-                sudahDiisi={!!balita.hasilLab.find((h) => h.tipe === tipeLabHariIni)}
-              />
-            ) : (
-              <p className="text-xs text-slate-400">
-                Form input hasil lab otomatis terbuka pas Hari ke-{HARI_LAB.BASELINE} (
-                {LABEL_LAB.BASELINE}) dan Hari ke-{HARI_LAB.ENDLINE} ({LABEL_LAB.ENDLINE}) — supaya tidak ada yang tidak sengaja
-                kepencet/keganti di hari lain.
-              </p>
-            )}
+          <div className="mt-4 space-y-4 border-t border-slate-100 pt-4">
+            {TIPE_LAB.map((t) => {
+              const target = balita.catatanHarian.find((c) => c.hariKe === HARI_LAB[t]);
+              return target && sudahTiba(target.tanggal) ? (
+                <HasilLabForm
+                  key={t}
+                  balitaId={balita.id}
+                  tipe={t}
+                  label={LABEL_LAB[t]}
+                  sudahDiisi={!!balita.hasilLab.find((h) => h.tipe === t)}
+                />
+              ) : (
+                <p key={t} className="text-xs text-slate-400">
+                  Form {LABEL_LAB[t]} terbuka mulai Hari ke-{HARI_LAB[t]}
+                  {target ? ` (${formatTanggal(target.tanggal)})` : ""}. Hari yang terlewat tetap bisa diisi belakangan.
+                </p>
+              );
+            })}
           </div>
         )}
       </Card>

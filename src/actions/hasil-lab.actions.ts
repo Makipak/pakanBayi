@@ -5,7 +5,7 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { hasilLabSchema } from "@/lib/validators";
 import { HARI_LAB, HB_MAX_WAJAR, HB_MIN_WAJAR, LABEL_LAB } from "@/lib/constants";
-import { isSameDay } from "@/lib/data";
+import { sudahTiba, ymdWib } from "@/lib/data";
 import type { ActionResult } from "./balita.actions";
 
 export async function submitHasilLab(formData: FormData): Promise<ActionResult> {
@@ -29,15 +29,16 @@ export async function submitHasilLab(formData: FormData): Promise<ActionResult> 
       return { ok: false, error: "Anda tidak punya akses ke balita ini" };
     }
 
-    // Kunci hari: form hasil lab tiap tipe (baseline/endline) cuma boleh
-    // disimpan pas hari studi yang sesuai — supaya tidak ada yang tidak sengaja
-    // kepencet/keganti di hari lain. Dicek di server, bukan cuma disembunyikan di UI.
-    const hariIni = balita.catatanHarian.find((c) => isSameDay(new Date(c.tanggal), new Date()));
+    // Hasil lab tiap tipe baru bisa diisi setelah hari studi targetnya tiba (hari yang
+    // sudah terlewat boleh diisi belakangan). Dicek di server, bukan cuma di UI.
     const hariTarget = HARI_LAB[data.tipe];
-    if (!hariIni || hariIni.hariKe !== hariTarget) {
+    const catatanTarget = balita.catatanHarian.find((c) => c.hariKe === hariTarget);
+    if (!catatanTarget || !sudahTiba(new Date(catatanTarget.tanggal))) {
       return {
         ok: false,
-        error: `Hasil lab ${LABEL_LAB[data.tipe]} hanya bisa diisi pada Hari ke-${hariTarget}.`,
+        error: `Hasil lab ${LABEL_LAB[data.tipe]} baru bisa diisi mulai Hari ke-${hariTarget}${
+          catatanTarget ? ` (${ymdWib(catatanTarget.tanggal)})` : ""
+        }.`,
       };
     }
 

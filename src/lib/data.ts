@@ -33,3 +33,28 @@ export function todayCatatan<T extends { tanggal: Date }>(rows: T[]): T | undefi
   const today = new Date();
   return rows.find((r) => isSameDay(new Date(r.tanggal), today));
 }
+
+/** Hari studi sudah tiba (tanggalnya hari ini atau sudah lewat) — hari terlewat boleh diisi belakangan. */
+export function sudahTiba(tanggal: Date): boolean {
+  return ymdWib(tanggal) <= ymdWib(new Date());
+}
+
+/**
+ * Hari yang sedang dipilih di kalender: dari parameter `?hari=N` kalau valid; kalau tidak,
+ * hari ini; kalau di luar rentang studi: hari terlewat pertama yang belum diisi (atau Hari 1).
+ */
+export function pilihHari<T extends { hariKe: number; tanggal: Date; statusInput: string }>(
+  rows: T[],
+  param?: string | string[]
+): T | undefined {
+  const raw = Array.isArray(param) ? param[0] : param;
+  const n = raw ? parseInt(raw, 10) : NaN;
+  if (Number.isInteger(n)) {
+    const dipilih = rows.find((r) => r.hariKe === n);
+    if (dipilih) return dipilih;
+  }
+  const hariIni = todayCatatan(rows);
+  if (hariIni) return hariIni;
+  const urut = [...rows].sort((a, b) => a.hariKe - b.hariKe);
+  return urut.find((r) => sudahTiba(r.tanggal) && r.statusInput !== "TERISI") ?? urut[0];
+}

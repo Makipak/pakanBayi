@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Card } from "@/components/ui";
 import { DURASI_STUDI_HARI, HARI_LAB } from "@/lib/constants";
 import { ymdWib } from "@/lib/data";
@@ -22,7 +23,18 @@ type Hari = { hariKe: number; tanggal: Date; statusInput: string };
 // tanggal berapa, dst., plus status isian dan penanda hari pengambilan lab. Server
 // component murni (tanpa JS di browser). Form pengubah tanggal hari ke-1 (khusus
 // admin) dikirim lewat `aksi`.
-export function KalenderStudi({ catatan, aksi }: { catatan: Hari[]; aksi?: React.ReactNode }) {
+export function KalenderStudi({
+  catatan,
+  aksi,
+  hrefHari,
+  terpilih,
+}: {
+  catatan: Hari[];
+  aksi?: React.ReactNode;
+  /** Kalau diisi, hari yang sudah tiba (termasuk yang terlewat) bisa diklik untuk diisi. */
+  hrefHari?: (hariKe: number) => string;
+  terpilih?: number;
+}) {
   const hari = [...catatan].sort((a, b) => a.hariKe - b.hariKe);
   const hariLab = new Set<number>(Object.values(HARI_LAB));
   const todayYmd = ymdWib(new Date());
@@ -65,18 +77,31 @@ export function KalenderStudi({ catatan, aksi }: { catatan: Hari[]; aksi?: React
             : terlewat
               ? "border-amber-200 bg-amber-50"
               : "border-slate-200 bg-white";
-          return (
-            <div
-              key={h.hariKe}
-              className={`rounded-lg border p-2 text-center ${tone} ${hariIni ? "ring-2 ring-brand" : ""}`}
-              title={fmtPanjang.format(h.tanggal)}
-            >
+          const kelas = `block rounded-lg border p-2 text-center ${tone} ${hariIni ? "ring-2 ring-brand" : ""} ${
+            terpilih === h.hariKe ? "outline outline-2 outline-offset-1 outline-slate-900" : ""
+          }`;
+          const isi = (
+            <>
               <p className="text-[11px] font-semibold text-slate-700">Hari {h.hariKe}</p>
               <p className="text-xs text-slate-900">{fmtSingkat.format(h.tanggal)}</p>
               <p className="text-[10px] text-slate-400">{fmtHari.format(h.tanggal)}</p>
               {hariLab.has(h.hariKe) && (
                 <p className="mt-1 rounded bg-slate-900 px-1 text-[10px] font-medium text-white">Lab</p>
               )}
+            </>
+          );
+          return hrefHari && ymd <= todayYmd ? (
+            <Link
+              key={h.hariKe}
+              href={hrefHari(h.hariKe)}
+              className={`${kelas} hover:border-slate-400`}
+              title={`${fmtPanjang.format(h.tanggal)} — klik untuk mengisi`}
+            >
+              {isi}
+            </Link>
+          ) : (
+            <div key={h.hariKe} className={kelas} title={fmtPanjang.format(h.tanggal)}>
+              {isi}
             </div>
           );
         })}
@@ -99,6 +124,7 @@ export function KalenderStudi({ catatan, aksi }: { catatan: Hari[]; aksi?: React
           <span className="mr-1 inline-block h-2.5 w-2.5 rounded-sm ring-2 ring-brand" />
           Hari ini
         </span>
+        {hrefHari && <span>Klik hari yang sudah tiba (termasuk yang terlewat) untuk mengisi.</span>}
       </div>
     </Card>
   );

@@ -4,13 +4,15 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { Card, EmptyState } from "@/components/ui";
 import { IconBack } from "@/components/icons";
-import { todayCatatan } from "@/lib/data";
+import { pilihHari, sudahTiba } from "@/lib/data";
+import { formatTanggal } from "@/lib/utils";
 import { CatatanHarianForm } from "@/components/CatatanHarianForm";
 
 export default async function InputHarianPage(
   props: PageProps<"/kader/balita/[id]/input">
 ) {
   const { id } = await props.params;
+  const sp = await props.searchParams;
   const session = await auth();
   if (!session) redirect("/login");
 
@@ -21,12 +23,13 @@ export default async function InputHarianPage(
   if (!balita) notFound();
   if (balita.kaderId !== session.user.id) redirect("/kader/dashboard");
 
-  const hariIni = todayCatatan(balita.catatanHarian);
+  const hariIni = pilihHari(balita.catatanHarian, sp.hari);
 
   // Hari ke-1 wajib lewat form onboarding gabungan (harian + Baseline) di halaman
   // detail, bukan lewat halaman input harian biasa ini — supaya baseline tidak
   // kelewat tidak sengaja.
-  if (hariIni?.hariKe === 1 && hariIni.statusInput !== "TERISI") {
+  const hari1 = balita.catatanHarian.find((c) => c.hariKe === 1);
+  if (hari1 && hari1.statusInput !== "TERISI") {
     redirect(`/kader/balita/${balita.id}`);
   }
 
@@ -41,16 +44,24 @@ export default async function InputHarianPage(
 
       <div>
         <h1 className="text-xl font-semibold text-slate-900">Input Harian</h1>
-        <p className="text-sm text-slate-500">{balita.nama}</p>
+        <p className="text-sm text-slate-500">
+          {balita.nama}
+          {hariIni && ` · Hari ke-${hariIni.hariKe} (${formatTanggal(hariIni.tanggal)})`}
+        </p>
       </div>
 
-      <Card>
+      <Card id="input-harian">
         {balita.status !== "AKTIF" ? (
           <EmptyState>Balita berstatus {balita.status.toLowerCase()}, input dinonaktifkan.</EmptyState>
         ) : !hariIni ? (
           <EmptyState>Hari ini di luar rentang studi 28 hari untuk balita ini.</EmptyState>
+        ) : !sudahTiba(hariIni.tanggal) ? (
+          <EmptyState>
+            Hari ke-{hariIni.hariKe} baru tiba pada {formatTanggal(hariIni.tanggal)}. Pilih hari lain di kalender.
+          </EmptyState>
         ) : (
           <CatatanHarianForm
+            key={hariIni.id}
             balitaId={balita.id}
             catatanHarianId={hariIni.id}
             hariKe={hariIni.hariKe}

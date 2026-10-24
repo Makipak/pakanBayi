@@ -67,10 +67,10 @@ akun kader (edit ditambahkan setelah rencana v1 — sebelumnya cuma tambah/hapus
   karbohidrat/protein/lemak (gram)
 - **Onboarding Hari ke-1**: input harian pertama + Hasil Lab Baseline digabung jadi satu form/satu
   submit, supaya kader tidak perlu bolak-balik halaman saat balita baru mulai ikut studi
-- **Kalender Studi** di detail balita: menampilkan tanggal tiap hari ke-1…28; Admin menentukan tanggal Hari ke-1 (default: tanggal pendaftaran)
+- **Kalender Studi** di detail balita: menampilkan tanggal tiap hari ke-1…28; klik hari untuk mengisi (hari terlewat boleh diisi belakangan oleh Kader/Admin); Admin atau Kader pemilik menentukan tanggal Hari ke-1 (default: tanggal pendaftaran)
 - Input hasil lab oleh Kader/Admin: Hb, Zinc — di 2 checkpoint (Baseline/Endline),
-  masing-masing **dikunci** hanya bisa diisi tepat di hari studi yang sesuai (kecuali Baseline,
-  lihat §8 di `rule.md`)
+  baru bisa diisi setelah hari studinya tiba; hari yang terlewat boleh diisi belakangan (lihat §7
+  dan §8 di `rule.md`)
 - Dashboard progres per balita (grafik tren berat badan & tinggi badan 28 hari, ringkasan asupan,
   ringkasan lab)
 - Dashboard agregat untuk Admin (daftar "Compliance per Balita" dipaginasi 10 baris/halaman lewat `?page=N`, urut dari compliance terendah)
