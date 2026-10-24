@@ -6,3 +6,7 @@ ALTER TABLE "Balita" ALTER COLUMN "tanggalMulai" DROP NOT NULL;
 ALTER TABLE "Balita" ALTER COLUMN "tanggalMulai" DROP DEFAULT;
 -- Semua input angka boleh desimal (usia balita dalam bulan, mis. 24,5).
 ALTER TABLE "Balita" ALTER COLUMN "usiaBulan" TYPE DOUBLE PRECISION;
+
+-- Penanda nilai yang sama persis dengan hari referensi (nilai awal terisi otomatis).
+ALTER TABLE "CatatanHarian" ADD COLUMN IF NOT EXISTS "salinanField" TEXT;
+ALTER TABLE "CatatanHarian" ADD COLUMN IF NOT EXISTS "salinanDariHari" INTEGER;

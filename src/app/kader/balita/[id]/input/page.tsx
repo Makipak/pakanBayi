@@ -4,7 +4,7 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { Card, EmptyState } from "@/components/ui";
 import { IconBack } from "@/components/icons";
-import { pilihHari, sudahTiba } from "@/lib/data";
+import { cariReferensi, pilihHari, sudahTiba } from "@/lib/data";
 import { formatTanggal } from "@/lib/utils";
 import { CatatanHarianForm } from "@/components/CatatanHarianForm";
 
@@ -64,6 +64,7 @@ export default async function InputHarianPage(
             defaultKarbohidrat={hariIni.karbohidratGram}
             defaultProtein={hariIni.proteinGram}
             defaultLemak={hariIni.lemakGram}
+            referensi={cariReferensi(balita.catatanHarian, hariIni.hariKe)}
           />
         )}
       </Card>

@@ -5,7 +5,7 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { catatanHarianSchema } from "@/lib/validators";
 import { BERAT_BADAN_MAX_WAJAR, BERAT_BADAN_MIN_WAJAR } from "@/lib/constants";
-import { sudahTiba } from "@/lib/data";
+import { cariReferensi, FIELD_SALINAN, sudahTiba } from "@/lib/data";
 import type { ActionResult } from "./balita.actions";
 
 // Cek scope: kader hanya boleh akses balita miliknya sendiri (rule.md §1, architecture.md §3)
@@ -59,6 +59,13 @@ export async function submitCatatanHarian(
       };
     }
 
+    // Tandai field yang nilainya identik dengan hari referensi (dihitung di server, bukan dipercaya dari klien).
+    const semuaHari = await prisma.catatanHarian.findMany({ where: { balitaId } });
+    const ref = cariReferensi(semuaHari, catatan.hariKe);
+    const salinan = ref
+      ? FIELD_SALINAN.filter((f) => data[f] != null && ref[f] != null && data[f] === ref[f])
+      : [];
+
     await prisma.catatanHarian.update({
       where: { id: data.catatanHarianId },
       data: {
@@ -69,6 +76,8 @@ export async function submitCatatanHarian(
         karbohidratGram: data.karbohidratGram ?? null,
         proteinGram: data.proteinGram ?? null,
         lemakGram: data.lemakGram ?? null,
+        salinanField: salinan.length ? salinan.join(",") : null,
+        salinanDariHari: salinan.length && ref ? ref.hariKe : null,
         statusInput: "TERISI",
         inputBy: session.user.id,
       },

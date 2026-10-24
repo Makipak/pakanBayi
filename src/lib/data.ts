@@ -67,3 +67,37 @@ export function infoKalender(rows: { hariKe: number; tanggal: Date; statusInput:
     terisi: r.statusInput === "TERISI",
   }));
 }
+
+export const FIELD_SALINAN = [
+  "beratBadan",
+  "tinggiBadan",
+  "energiKkal",
+  "karbohidratGram",
+  "proteinGram",
+  "lemakGram",
+] as const;
+export type FieldSalinan = (typeof FIELD_SALINAN)[number];
+export type Referensi = { hariKe: number } & Record<FieldSalinan, number | null>;
+
+/**
+ * Hari referensi untuk nilai awal form: hari TERISI terdekat dengan nomor lebih kecil
+ * dari `hariKe` (pengisian boleh tidak berurutan). Null kalau belum ada.
+ */
+export function cariReferensi(
+  rows: ({ hariKe: number; statusInput: string } & Record<FieldSalinan, number | null>)[],
+  hariKe: number
+): Referensi | null {
+  const ref = rows
+    .filter((r) => r.hariKe < hariKe && r.statusInput === "TERISI")
+    .sort((a, b) => b.hariKe - a.hariKe)[0];
+  if (!ref) return null;
+  return {
+    hariKe: ref.hariKe,
+    beratBadan: ref.beratBadan,
+    tinggiBadan: ref.tinggiBadan,
+    energiKkal: ref.energiKkal,
+    karbohidratGram: ref.karbohidratGram,
+    proteinGram: ref.proteinGram,
+    lemakGram: ref.lemakGram,
+  };
+}

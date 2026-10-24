@@ -31,6 +31,8 @@ export async function GET() {
     karbohidrat_gram: c.karbohidratGram ?? "",
     protein_gram: c.proteinGram ?? "",
     lemak_gram: c.lemakGram ?? "",
+    field_sama_dengan_hari_sebelumnya: c.salinanField ?? "",
+    hari_referensi: c.salinanDariHari ?? "",
     status_input: c.statusInput,
     diinput_oleh: c.input?.nama ?? "",
   }));

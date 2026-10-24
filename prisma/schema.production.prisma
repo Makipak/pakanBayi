@@ -131,6 +131,8 @@ model CatatanHarian {
   proteinGram        Float?
   lemakGram          Float?
   energiKkal         Float?
+  salinanField       String? // field yang nilainya identik dgn hari referensi (koma-terpisah), null = semua input baru
+  salinanDariHari    Int? // hariKe referensi untuk salinanField
   statusInput        StatusInput @default(TIDAK_TERISI)
   inputBy            String?
   createdAt          DateTime    @default(now())

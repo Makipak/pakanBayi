@@ -5,19 +5,9 @@ import { useRouter } from "next/navigation";
 import { submitCatatanHarian } from "@/actions/catatan-harian.actions";
 import { Button, FieldError, Input, Label } from "@/components/ui";
 import { TARGET_NUGGET_GRAM } from "@/lib/constants";
+import type { FieldSalinan, Referensi } from "@/lib/data";
 
-export function CatatanHarianForm({
-  balitaId,
-  catatanHarianId,
-  hariKe,
-  defaultTinggiBadan,
-  defaultBeratBadan,
-  defaultKonsumsi,
-  defaultEnergi,
-  defaultKarbohidrat,
-  defaultProtein,
-  defaultLemak,
-}: {
+type Props = {
   balitaId: string;
   catatanHarianId: string;
   hariKe: number;
@@ -28,11 +18,59 @@ export function CatatanHarianForm({
   defaultKarbohidrat?: number | null;
   defaultProtein?: number | null;
   defaultLemak?: number | null;
-}) {
+  /** Hari TERISI terdekat sebelumnya; dipakai sebagai nilai awal field yang masih kosong. */
+  referensi?: Referensi | null;
+};
+
+// Normalisasi untuk membandingkan "24,5" dengan 24.5.
+const num = (v: string) => {
+  const t = v.trim().replace(",", ".");
+  return t === "" || isNaN(Number(t)) ? null : Number(t);
+};
+
+export function CatatanHarianForm(props: Props) {
+  const { balitaId, catatanHarianId, hariKe, referensi } = props;
   const [error, setError] = useState<string | null>(null);
   const [needsConfirm, setNeedsConfirm] = useState(false);
   const [pending, startTransition] = useTransition();
   const router = useRouter();
+
+  // Nilai tersimpan menang; kalau kosong, pakai nilai hari referensi (nugget tidak pernah disalin).
+  const awal = (own: number | null | undefined, f: FieldSalinan) =>
+    String(own ?? referensi?.[f] ?? "");
+  const [v, setV] = useState<Record<FieldSalinan, string>>({
+    beratBadan: awal(props.defaultBeratBadan, "beratBadan"),
+    tinggiBadan: awal(props.defaultTinggiBadan, "tinggiBadan"),
+    energiKkal: awal(props.defaultEnergi, "energiKkal"),
+    karbohidratGram: awal(props.defaultKarbohidrat, "karbohidratGram"),
+    proteinGram: awal(props.defaultProtein, "proteinGram"),
+    lemakGram: awal(props.defaultLemak, "lemakGram"),
+  });
+
+  const salinan = (f: FieldSalinan) =>
+    !!referensi && referensi[f] != null && num(v[f]) === referensi[f];
+
+  function field(f: FieldSalinan, label: string, required = false) {
+    const sama = salinan(f);
+    return (
+      <div>
+        <Label htmlFor={f}>{label}</Label>
+        <Input
+          id={f}
+          name={f}
+          type="text"
+          required={required}
+          inputMode="decimal"
+          value={v[f]}
+          onChange={(e) => setV((s) => ({ ...s, [f]: e.target.value }))}
+          className={sama ? "text-slate-400" : undefined}
+        />
+        {sama && (
+          <p className="mt-1 text-xs text-slate-400">Sama dengan Hari ke-{referensi!.hariKe}, ubah jika berbeda</p>
+        )}
+      </div>
+    );
+  }
 
   return (
     <form
@@ -54,28 +92,8 @@ export function CatatanHarianForm({
       <p className="text-sm font-medium text-slate-700">Hari ke-{hariKe} dari 28</p>
 
       <div className="grid grid-cols-2 gap-3">
-        <div>
-          <Label htmlFor="beratBadan">Berat badan (kg)</Label>
-          <Input
-            id="beratBadan"
-            name="beratBadan"
-            type="text"
-            required
-            defaultValue={defaultBeratBadan ?? undefined}
-            inputMode="decimal"
-          />
-        </div>
-        <div>
-          <Label htmlFor="tinggiBadan">Tinggi badan (cm)</Label>
-          <Input
-            id="tinggiBadan"
-            name="tinggiBadan"
-            type="text"
-            required
-            defaultValue={defaultTinggiBadan ?? undefined}
-            inputMode="decimal"
-          />
-        </div>
+        {field("beratBadan", "Berat badan (kg)", true)}
+        {field("tinggiBadan", "Tinggi badan (cm)", true)}
       </div>
 
       <div>
@@ -87,7 +105,7 @@ export function CatatanHarianForm({
           name="konsumsiNuggetGram"
           type="text"
           required
-          defaultValue={defaultKonsumsi ?? undefined}
+          defaultValue={props.defaultKonsumsi ?? undefined}
           inputMode="decimal"
         />
       </div>
@@ -95,46 +113,10 @@ export function CatatanHarianForm({
       <div>
         <p className="mb-1 text-sm font-medium text-slate-700">Asupan harian: energi &amp; makronutrien (opsional)</p>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <div>
-            <Label htmlFor="energiKkal">Energi (kkal)</Label>
-            <Input
-              id="energiKkal"
-              name="energiKkal"
-              type="text"
-              defaultValue={defaultEnergi ?? undefined}
-              inputMode="decimal"
-            />
-          </div>
-          <div>
-            <Label htmlFor="karbohidratGram">Karbohidrat (g)</Label>
-            <Input
-              id="karbohidratGram"
-              name="karbohidratGram"
-              type="text"
-              defaultValue={defaultKarbohidrat ?? undefined}
-              inputMode="decimal"
-            />
-          </div>
-          <div>
-            <Label htmlFor="proteinGram">Protein (g)</Label>
-            <Input
-              id="proteinGram"
-              name="proteinGram"
-              type="text"
-              defaultValue={defaultProtein ?? undefined}
-              inputMode="decimal"
-            />
-          </div>
-          <div>
-            <Label htmlFor="lemakGram">Lemak (g)</Label>
-            <Input
-              id="lemakGram"
-              name="lemakGram"
-              type="text"
-              defaultValue={defaultLemak ?? undefined}
-              inputMode="decimal"
-            />
-          </div>
+          {field("energiKkal", "Energi (kkal)")}
+          {field("karbohidratGram", "Karbohidrat (g)")}
+          {field("proteinGram", "Protein (g)")}
+          {field("lemakGram", "Lemak (g)")}
         </div>
       </div>
 

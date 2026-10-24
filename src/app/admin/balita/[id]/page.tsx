@@ -11,7 +11,7 @@ import { KalenderStudi } from "@/components/KalenderStudi";
 import { CatatanHarianForm } from "@/components/CatatanHarianForm";
 import { BalitaStatusForm } from "@/components/BalitaStatusForm";
 import { BalitaEditForm } from "@/components/BalitaEditForm";
-import { infoKalender, pilihHari, sudahTiba, ymdWib } from "@/lib/data";
+import { cariReferensi, infoKalender, pilihHari, sudahTiba, ymdWib } from "@/lib/data";
 
 export default async function AdminBalitaDetailPage(
   props: PageProps<"/admin/balita/[id]">
@@ -262,9 +262,11 @@ export default async function AdminBalitaDetailPage(
             defaultTinggiBadan={hariDipilih.tinggiBadan}
             defaultBeratBadan={hariDipilih.beratBadan}
             defaultKonsumsi={hariDipilih.konsumsiNuggetGram}
+            defaultEnergi={hariDipilih.energiKkal}
             defaultKarbohidrat={hariDipilih.karbohidratGram}
             defaultProtein={hariDipilih.proteinGram}
             defaultLemak={hariDipilih.lemakGram}
+            referensi={cariReferensi(balita.catatanHarian, hariDipilih.hariKe)}
           />
         </Card>
       )}
