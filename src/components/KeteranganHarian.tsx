@@ -1,17 +1,31 @@
+"use client";
+
+import { useState } from "react";
 import { Card } from "@/components/ui";
 import { formatTanggal } from "@/lib/utils";
 
 type Item = { id: string; hariKe: number; tanggal: Date; keterangan: string | null };
 
-/** Daftar keterangan harian (urut hari). Tidak tampil kalau belum ada yang mengisi. */
+const BATAS_AWAL = 3;
+
+/**
+ * Keterangan harian, terbaru (hari terbesar) di atas. Awalnya hanya 3 teratas;
+ * sisanya dibuka lewat "Lihat semua". Tidak tampil kalau belum ada yang mengisi.
+ */
 export function KeteranganHarian({ catatan, hrefTemplate }: { catatan: Item[]; hrefTemplate?: string }) {
-  const items = catatan.filter((c) => c.keterangan).sort((a, b) => a.hariKe - b.hariKe);
+  const [semua, setSemua] = useState(false);
+  const items = catatan.filter((c) => c.keterangan).sort((a, b) => b.hariKe - a.hariKe);
   if (items.length === 0) return null;
+  const tampil = semua ? items : items.slice(0, BATAS_AWAL);
+  const sisa = items.length - BATAS_AWAL;
+
   return (
     <Card>
-      <h2 className="mb-3 font-medium text-slate-900">Keterangan Harian</h2>
+      <h2 className="mb-3 font-medium text-slate-900">
+        Keterangan Harian <span className="text-sm font-normal text-slate-400">({items.length})</span>
+      </h2>
       <ul className="divide-y divide-slate-100 text-sm">
-        {items.map((c) => {
+        {tampil.map((c) => {
           const label = (
             <>
               <span className="font-medium text-slate-700">Hari {c.hariKe}</span>
@@ -29,11 +43,20 @@ export function KeteranganHarian({ catatan, hrefTemplate }: { catatan: Item[]; h
                   label
                 )}
               </div>
-              <p className="whitespace-pre-line text-slate-700">{c.keterangan}</p>
+              <p className="whitespace-pre-line break-words text-slate-700">{c.keterangan}</p>
             </li>
           );
         })}
       </ul>
+      {sisa > 0 && (
+        <button
+          type="button"
+          onClick={() => setSemua((v) => !v)}
+          className="mt-3 text-sm font-medium text-brand hover:underline"
+        >
+          {semua ? "Tampilkan lebih sedikit" : `Lihat semua (${items.length})`}
+        </button>
+      )}
     </Card>
   );
 }
