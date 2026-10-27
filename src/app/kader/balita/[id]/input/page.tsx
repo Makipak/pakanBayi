@@ -53,7 +53,7 @@ export default async function InputHarianPage(
           </EmptyState>
         ) : (
           <CatatanHarianForm
-            key={hariIni.id}
+            key={`${hariIni.id}-${hariIni.statusInput}`}
             balitaId={balita.id}
             catatanHarianId={hariIni.id}
             hariKe={hariIni.hariKe}
@@ -65,6 +65,7 @@ export default async function InputHarianPage(
             defaultProtein={hariIni.proteinGram}
             defaultLemak={hariIni.lemakGram}
             defaultKeterangan={hariIni.keterangan}
+            sudahDiisi={hariIni.statusInput === "TERISI"}
             referensi={cariReferensi(balita.catatanHarian, hariIni.hariKe)}
           />
         )}

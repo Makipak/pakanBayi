@@ -258,7 +258,7 @@ export default async function AdminBalitaDetailPage(
             {hariDipilih.statusInput === "TERISI" ? " · sudah diisi (edit)" : ""}
           </h2>
           <CatatanHarianForm
-            key={hariDipilih.id}
+            key={`${hariDipilih.id}-${hariDipilih.statusInput}`}
             balitaId={balita.id}
             catatanHarianId={hariDipilih.id}
             hariKe={hariDipilih.hariKe}
@@ -270,6 +270,7 @@ export default async function AdminBalitaDetailPage(
             defaultProtein={hariDipilih.proteinGram}
             defaultLemak={hariDipilih.lemakGram}
             defaultKeterangan={hariDipilih.keterangan}
+            sudahDiisi={hariDipilih.statusInput === "TERISI"}
             referensi={cariReferensi(balita.catatanHarian, hariDipilih.hariKe)}
           />
         </Card>

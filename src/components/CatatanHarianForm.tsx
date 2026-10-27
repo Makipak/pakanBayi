@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { submitCatatanHarian } from "@/actions/catatan-harian.actions";
+import { kosongkanCatatanHarian, submitCatatanHarian } from "@/actions/catatan-harian.actions";
 import { Button, FieldError, Input, Label } from "@/components/ui";
 import { TARGET_NUGGET_GRAM } from "@/lib/constants";
 import type { FieldSalinan, Referensi } from "@/lib/data";
@@ -21,6 +21,8 @@ type Props = {
   /** Hari TERISI terdekat sebelumnya; dipakai sebagai nilai awal field yang masih kosong. */
   referensi?: Referensi | null;
   defaultKeterangan?: string | null;
+  /** Hari ini sudah pernah disimpan (TERISI) -> tampilkan tombol hapus isian. */
+  sudahDiisi?: boolean;
 };
 
 // Normalisasi untuk membandingkan "24,5" dengan 24.5.
@@ -34,6 +36,7 @@ export function CatatanHarianForm(props: Props) {
   const [error, setError] = useState<string | null>(null);
   const [needsConfirm, setNeedsConfirm] = useState(false);
   const [pending, startTransition] = useTransition();
+  const [konfirmHapus, setKonfirmHapus] = useState(false);
   const router = useRouter();
 
   // Nilai tersimpan menang; kalau kosong, pakai nilai hari referensi (nugget tidak pernah disalin).
@@ -146,6 +149,50 @@ export function CatatanHarianForm(props: Props) {
       <Button type="submit" disabled={pending} className="w-full">
         {pending ? "Menyimpan..." : "Simpan"}
       </Button>
+
+      {props.sudahDiisi && (
+        <div className="border-t border-slate-100 pt-3">
+          {!konfirmHapus ? (
+            <button
+              type="button"
+              onClick={() => setKonfirmHapus(true)}
+              className="text-sm font-medium text-red-600 hover:underline"
+            >
+              Hapus isian hari ini
+            </button>
+          ) : (
+            <div className="space-y-2 rounded-lg bg-red-50 p-3">
+              <p className="text-sm text-red-700">
+                Semua isian Hari ke-{hariKe} (berat, tinggi, nugget, asupan, keterangan) akan dikosongkan. Lanjutkan?
+              </p>
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant="danger"
+                  disabled={pending}
+                  onClick={() => {
+                    setError(null);
+                    startTransition(async () => {
+                      const r = await kosongkanCatatanHarian(balitaId, catatanHarianId);
+                      if (!r.ok) {
+                        setError(r.error);
+                        setKonfirmHapus(false);
+                      } else {
+                        router.refresh();
+                      }
+                    });
+                  }}
+                >
+                  {pending ? "Menghapus..." : "Ya, hapus"}
+                </Button>
+                <Button type="button" variant="ghost" disabled={pending} onClick={() => setKonfirmHapus(false)}>
+                  Batal
+                </Button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
     </form>
   );
 }

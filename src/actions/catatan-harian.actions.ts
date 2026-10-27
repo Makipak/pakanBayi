@@ -93,3 +93,52 @@ export async function submitCatatanHarian(
     return { ok: false, error: e instanceof Error ? e.message : "Gagal simpan catatan harian" };
   }
 }
+
+/**
+ * Kosongkan isian satu hari (mis. salah input): semua nilai dikembalikan ke kosong dan
+ * status menjadi TIDAK_TERISI. Barisnya tetap ada (kalender 28 hari tidak berubah).
+ * Hasil lab tidak ikut terhapus. Admin atau kader pemilik balita.
+ */
+export async function kosongkanCatatanHarian(
+  balitaId: string,
+  catatanHarianId: string
+): Promise<ActionResult> {
+  try {
+    await getScopedBalitaOrThrow(balitaId);
+
+    const catatan = await prisma.catatanHarian.findUnique({ where: { id: catatanHarianId } });
+    if (!catatan || catatan.balitaId !== balitaId) {
+      return { ok: false, error: "Catatan harian tidak ditemukan" };
+    }
+    if (catatan.statusInput !== "TERISI") {
+      return { ok: false, error: "Hari ini memang belum terisi" };
+    }
+
+    await prisma.catatanHarian.update({
+      where: { id: catatanHarianId },
+      data: {
+        tinggiBadan: null,
+        beratBadan: null,
+        konsumsiNuggetGram: null,
+        energiKkal: null,
+        karbohidratGram: null,
+        proteinGram: null,
+        lemakGram: null,
+        keterangan: null,
+        salinanField: null,
+        salinanDariHari: null,
+        statusInput: "TIDAK_TERISI",
+        inputBy: null,
+      },
+    });
+
+    revalidatePath(`/kader/balita/${balitaId}`);
+    revalidatePath(`/kader/balita/${balitaId}/input`);
+    revalidatePath(`/admin/balita/${balitaId}`);
+    revalidatePath("/kader/dashboard");
+    revalidatePath("/admin/dashboard");
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : "Gagal mengosongkan catatan harian" };
+  }
+}
