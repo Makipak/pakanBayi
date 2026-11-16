@@ -10,6 +10,7 @@ import { HasilLabForm } from "@/components/HasilLabForm";
 import { KalenderStudi } from "@/components/KalenderStudi";
 import { KeteranganHarian } from "@/components/KeteranganHarian";
 import { KonsumsiNuggetCard } from "@/components/KonsumsiNuggetCard";
+import { LabChart } from "@/components/LabChart";
 import { CatatanHarianForm } from "@/components/CatatanHarianForm";
 import { BalitaStatusForm } from "@/components/BalitaStatusForm";
 import { BalitaEditForm } from "@/components/BalitaEditForm";
@@ -285,6 +286,12 @@ export default async function AdminBalitaDetailPage(
           <LabSummary label={`${LABEL_LAB.BASELINE} (Hari-${HARI_LAB.BASELINE})`} data={baseline} />
           <LabSummary label={`${LABEL_LAB.ENDLINE} (Hari-${HARI_LAB.ENDLINE})`} data={endline} />
         </div>
+        {(baseline || endline) && (
+          <LabChart
+            baseline={baseline ? { hb: baseline.hbValue, zinc: baseline.zincValue } : null}
+            endline={endline ? { hb: endline.hbValue, zinc: endline.zincValue } : null}
+          />
+        )}
         {balita.status === "AKTIF" && (
           <div className="mt-4 space-y-4 border-t border-slate-100 pt-4">
             {TIPE_LAB.map((t) => {
