@@ -9,6 +9,7 @@ import { DURASI_STUDI_HARI, HARI_LAB, LABEL_LAB, TIPE_LAB } from "@/lib/constant
 import { HasilLabForm } from "@/components/HasilLabForm";
 import { KalenderStudi } from "@/components/KalenderStudi";
 import { KeteranganHarian } from "@/components/KeteranganHarian";
+import { KonsumsiNuggetCard } from "@/components/KonsumsiNuggetCard";
 import { CatatanHarianForm } from "@/components/CatatanHarianForm";
 import { BalitaStatusForm } from "@/components/BalitaStatusForm";
 import { BalitaEditForm } from "@/components/BalitaEditForm";
@@ -240,6 +241,8 @@ export default async function AdminBalitaDetailPage(
           />
         </div>
       </Card>
+
+      <KonsumsiNuggetCard catatan={balita.catatanHarian} />
 
       <Card>
         <h2 className="mb-3 font-medium text-slate-900">Rata-rata Asupan Harian</h2>

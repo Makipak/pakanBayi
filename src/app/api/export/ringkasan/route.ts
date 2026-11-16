@@ -1,7 +1,7 @@
 import Papa from "papaparse";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { complianceRate, delta } from "@/lib/utils";
+import { complianceRate, delta, LABEL_KONSUMSI, ringkasKonsumsiNugget } from "@/lib/utils";
 
 export async function GET() {
   const session = await auth();
@@ -29,6 +29,7 @@ export async function GET() {
         ? Math.round((terisi.reduce((sum, c) => sum + (c[field] ?? 0), 0) / terisi.length) * 100) / 100
         : null;
 
+    const nugget = ringkasKonsumsiNugget(terisi);
     const baseline = b.hasilLab.find((h) => h.tipe === "BASELINE");
     const endline = b.hasilLab.find((h) => h.tipe === "ENDLINE");
 
@@ -47,6 +48,10 @@ export async function GET() {
       berat_badan_terakhir_kg: beratTerakhir ?? "",
       delta_berat_badan_kg: delta(beratTerakhir, b.beratBadanAwal) ?? "",
       rata_rata_konsumsi_nugget_gram: rataGram("konsumsiNuggetGram") ?? "",
+      persen_konsumsi_nugget_dari_target: nugget?.persenTarget ?? "",
+      total_konsumsi_nugget_gram: nugget?.totalGram ?? "",
+      hari_nugget_habis_penuh: nugget?.hariHabisPenuh ?? "",
+      status_konsumsi_nugget: nugget ? LABEL_KONSUMSI[nugget.status] : "",
       rata_rata_energi_kkal: rataGram("energiKkal") ?? "",
       rata_rata_karbohidrat_gram: rataGram("karbohidratGram") ?? "",
       rata_rata_protein_gram: rataGram("proteinGram") ?? "",

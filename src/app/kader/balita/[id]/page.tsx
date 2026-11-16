@@ -11,6 +11,7 @@ import { DURASI_STUDI_HARI, HARI_LAB, LABEL_LAB, TIPE_LAB } from "@/lib/constant
 import { HasilLabForm } from "@/components/HasilLabForm";
 import { KalenderStudi } from "@/components/KalenderStudi";
 import { KeteranganHarian } from "@/components/KeteranganHarian";
+import { KonsumsiNuggetCard } from "@/components/KonsumsiNuggetCard";
 
 export default async function KaderBalitaDetailPage(
   props: PageProps<"/kader/balita/[id]">
@@ -159,6 +160,8 @@ export default async function KaderBalitaDetailPage(
           />
         </div>
       </Card>
+
+      <KonsumsiNuggetCard catatan={balita.catatanHarian} />
 
       <Card>
         <h2 className="mb-3 font-medium text-slate-900">Rata-rata Asupan Harian</h2>
